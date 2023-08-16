@@ -8,12 +8,13 @@ import java.io.*;
 import java.net.InetSocketAddress;
 
 public class LocalServer {
-    String homeHtml="Test.html";
+    String homeHtml = "Test.html";
+    public boolean running = true;
+
     public LocalServer() {
-        HttpServer server;
         try {
-            server = HttpServer.create(new InetSocketAddress(8080), 0);
-            server.createContext("/",exchange -> {
+            HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+            server.createContext("/", exchange -> {
                 try {
                     FileInputStream fis = new FileInputStream("web/" + homeHtml);
                     byte[] bytes = fis.readAllBytes();
@@ -28,7 +29,7 @@ public class LocalServer {
                 }
             });
 
-            server.createContext("/io",new APIHandler());
+            server.createContext("/io", new APIHandler(server));
 
             //create context from web files
             addFile(server);
@@ -40,17 +41,17 @@ public class LocalServer {
         }
     }
 
-    public void addFile(HttpServer server){
-        for(String path:FileIterator.getPathList()){
-            server.createContext(path,exchange -> {
+    public void addFile(HttpServer server) {
+        for (String path : FileIterator.getPathList()) {
+            server.createContext(path, exchange -> {
                 try {
                     FileInputStream fis = new FileInputStream("web/" + path);
                     byte[] bytes = fis.readAllBytes();
                     fis.close();
-                    String contentType="text/plain";
-                    if (path.toLowerCase().endsWith(".html")) contentType="text/html";
-                    else if (path.toLowerCase().endsWith(".css")) contentType="text/css";
-                    else if (path.toLowerCase().endsWith(".js")) contentType="text/javascript";
+                    String contentType = "text/plain";
+                    if (path.toLowerCase().endsWith(".html")) contentType = "text/html";
+                    else if (path.toLowerCase().endsWith(".css")) contentType = "text/css";
+                    else if (path.toLowerCase().endsWith(".js")) contentType = "text/javascript";
                     exchange.getResponseHeaders().set("Content-Type", contentType);
                     exchange.sendResponseHeaders(200, bytes.length);
                     OutputStream os = exchange.getResponseBody();
@@ -64,8 +65,18 @@ public class LocalServer {
     }
 
     static class APIHandler implements HttpHandler {
+        HttpServer server;
+        public APIHandler(HttpServer server){
+            this.server=server;
+        }
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if(exchange.getRequestURI().getPath().equals("/io/shutdown")){
+                exchange.sendResponseHeaders(200, 0);
+                exchange.getResponseBody().close();
+                server.stop(0);
+                System.exit(0);
+            }
             if ("POST".equals(exchange.getRequestMethod())) {
 
                 String response = "Task completed successfully!";
