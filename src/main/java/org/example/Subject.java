@@ -5,13 +5,15 @@ public class Subject {
     private int sem;
     private int lectureCount;
     private final boolean isPractical;
+    private String roomCode;
     private OnModifiedListener onModifiedListener;
 
-    public Subject(String subjectCode, int sem, int lectureCount, boolean isPractical, OnModifiedListener onModifiedListener) {
+    public Subject(String subjectCode, int sem, int lectureCount, boolean isPractical, String roomCode, OnModifiedListener onModifiedListener) {
         this.subjectCode = subjectCode;
         this.sem = sem;
         this.lectureCount = lectureCount;
         this.isPractical = isPractical;
+        this.roomCode = roomCode;
         this.onModifiedListener = onModifiedListener;
     }
 
@@ -48,5 +50,14 @@ public class Subject {
 
     public void setOnModifiedListener(OnModifiedListener onModifiedListener) {
         this.onModifiedListener = onModifiedListener;
+    }
+
+    public String getRoomCode() {
+        return roomCode;
+    }
+
+    public void setRoomCode(String roomCode) {
+        this.roomCode = roomCode;
+        onModifiedListener.onModified();
     }
 }
