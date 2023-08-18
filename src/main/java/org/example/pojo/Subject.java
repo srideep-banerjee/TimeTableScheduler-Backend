@@ -1,7 +1,9 @@
-package org.example;
+package org.example.pojo;
+
+import org.example.interfaces.OnModifiedListener;
 
 public class Subject {
-    private String subjectCode;
+    private final String subjectCode;
     private int sem;
     private int lectureCount;
     private final boolean isPractical;
@@ -21,17 +23,12 @@ public class Subject {
         return subjectCode;
     }
 
-    public void setSubjectCode(String subjectCode){
-        this.subjectCode=subjectCode;
-        onModifiedListener.onModified();
-    }
-
     public int getSem() {
         return sem;
     }
 
-    public void setSem(int sem){
-        this.sem=sem;
+    public void setSem(int sem) {
+        this.sem = sem;
         onModifiedListener.onModified();
     }
 
@@ -39,8 +36,8 @@ public class Subject {
         return lectureCount;
     }
 
-    public void setLectureCount(int lectureCount){
-        this.lectureCount=lectureCount;
+    public void setLectureCount(int lectureCount) {
+        this.lectureCount = lectureCount;
         onModifiedListener.onModified();
     }
 
