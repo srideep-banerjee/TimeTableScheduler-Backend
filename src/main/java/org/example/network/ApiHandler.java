@@ -8,19 +8,19 @@ import java.io.*;
 
 public class ApiHandler implements HttpHandler {
     HttpServer server;
+    ApiActionHelper apiActionHelper;
 
 
     public ApiHandler(HttpServer server) {
         this.server = server;
+        apiActionHelper = ApiActionHelper.getInstance();
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (exchange.getRequestURI().getPath().equals("/io/shutdown")) {
-            sendResponse(exchange, 200, "Server stopping");
-            server.stop(0);
-            System.exit(0);
-        }
+        if (exchange.getRequestURI().getPath().equals("/io/shutdown"))
+            apiActionHelper.performAction("shutdown");
+
         if ("POST".equals(exchange.getRequestMethod())) {
 
             String response = "Task completed successfully!";

@@ -6,12 +6,12 @@ import java.io.*;
 import java.net.InetSocketAddress;
 
 public class LocalServer {
-    String homeHtml = "Test.html";
-    public boolean running = true;
+    private String homeHtml = "Test.html";
+    private HttpServer server;
 
     public LocalServer(int port) {
         try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+            this.server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/", exchange -> {
                 try {
                     FileInputStream fis = new FileInputStream("web/" + homeHtml);
@@ -60,5 +60,9 @@ public class LocalServer {
                 }
             });
         }
+    }
+
+    public void stop() {
+        if (server != null) server.stop(0);
     }
 }
