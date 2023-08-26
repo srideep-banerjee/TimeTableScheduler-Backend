@@ -10,26 +10,36 @@ import java.util.*;
 
 public class Generator {
     private final int populationSize=100;
+    private final int tournamentSize=5;
+    private final float crossoverRate=0.9f;
+    private final float mutationRate=0.01f;
+
     private int totalLectureCount=0;
     private String[] subjectCodeArray=null;
     private String[] teacherNameArray=null;
     private PopulationStorage populationStorage;
-    private double[] fitness=null;
-    private double averageFitness=0;
-    private int maxFitnessIndex=-1;
+    private float[] fitness;
+    private Integer[] selectedIndices;
+    private float averageFitness=0;
+    private float maxFitness=0;
     private int generation = 0;
     final private Random random=new Random();
     SubjectDao subjectDao=SubjectDao.getInstance();
     TeacherDao teacherDao=TeacherDao.getInstance();
 
     public Generator(){
-        fitness=new double[populationSize];
+        fitness=new float[populationSize];
+        selectedIndices=new Integer[populationSize/tournamentSize];
     }
 
     public void generate() throws IOException {
         updateVariables();
         populate();
-        calculatePopulationFitness();
+        while(maxFitness!=1 && generation<=1000){
+            calculateFitness();
+            selectParents();
+            generateNewPopulation();
+        }
     }
 
     private void updateVariables(){
@@ -69,21 +79,18 @@ public class Generator {
         ps.close();
     }
 
-    public void calculatePopulationFitness()throws IOException{
-        double sum=0d;
+    private void calculateFitness()throws IOException{
+        float sum=0f;
+        maxFitness=0;
         for(int i=0;i<populationSize;i++){
-            fitness[i]=calculateFitness(i);
+            fitness[i]=1f/(1f+countHardConstraintViolation(i));
             sum+=fitness[i];
-            if(fitness[i]>fitness[maxFitnessIndex])maxFitnessIndex=i;
+            if(fitness[i]>maxFitness)maxFitness=fitness[i];
         }
         averageFitness=sum/populationSize;
     }
 
-    public double calculateFitness(int index) throws IOException {
-        return 1d/(1d+countHardConstraintViolation(index));
-    }
-
-    public int countHardConstraintViolation(int index) throws IOException {
+    private int countHardConstraintViolation(int index) throws IOException {
         int count=0;
 
         HashMap<String,Integer> h3=new HashMap<>();
@@ -211,6 +218,57 @@ public class Generator {
             if(!b) count++;
 
         return count;
+    }
+
+    private void selectParents(){
+        for(int i=0;i<selectedIndices.length;i++){
+            int max=random.nextInt(populationSize);
+            for(int j=1;j<tournamentSize;j++){
+                int next=random.nextInt(populationSize);
+                if(fitness[next]>fitness[max])max=next;
+            }
+            selectedIndices[i]=max;
+            fitness[max]=-fitness[max];
+        }
+        Arrays.sort(selectedIndices,(a,b)->(int)(-(fitness[b]-fitness[a])/Math.abs(fitness[a]-fitness[b])));
+    }
+
+    private void generateNewPopulation() throws IOException {
+        PopulationStorage prevPopulationStorage=populationStorage;
+        populationStorage=new PopulationStorage(generation);
+        int index=0;
+
+        //copy the top individuals of previous generation as non crossed individuals
+        for(;index<populationSize*(1-crossoverRate);index++){
+            PrintStream ps=populationStorage.getChromosomeWriter(index);
+            Scanner sc=prevPopulationStorage.getChromosomeReader(selectedIndices[index]);
+            for(int i=0;i<totalLectureCount*4;i++) ps.println(sc.nextShort());
+            ps.close();
+            sc.close();
+        }
+
+        for (;index<populationSize*crossoverRate-1;index++){
+            //select two random indices to cross
+            int ind1=selectedIndices[random.nextInt(selectedIndices.length)];
+            int ind2=selectedIndices[random.nextInt(selectedIndices.length)];
+            Scanner sc1=prevPopulationStorage.getChromosomeReader(ind1);
+            Scanner sc2=prevPopulationStorage.getChromosomeReader(ind2);
+            PrintStream ps=populationStorage.getChromosomeWriter(index);
+            for(int i=0;i<totalLectureCount;i++){
+                short s=0;
+                boolean ch=random.nextBoolean();
+                for(byte b=0;b<4;b++){
+                    if(ch){s=sc1.nextShort();sc2.nextShort();}
+                    else {s=sc2.nextShort();sc1.nextShort();}
+                    ps.println(s);
+                }
+            }
+            sc1.close();
+            sc2.close();
+            ps.close();
+        }
+
+        generateRandomChromosome(populationSize-1);
     }
 
 }
