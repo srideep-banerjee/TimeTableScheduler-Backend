@@ -12,6 +12,10 @@ public class ApiActionHelper {
     }
 
     public static ApiActionHelper getInstance() {
+        if(instance==null){
+            instance=new ApiActionHelper();
+            instance.actions=new HashMap<>();
+        }
         return instance;
     }
 

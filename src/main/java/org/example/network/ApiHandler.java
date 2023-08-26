@@ -18,10 +18,12 @@ public class ApiHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (exchange.getRequestURI().getPath().equals("/io/shutdown"))
+        if (exchange.getRequestURI().getPath().equals("/io/shutdown")){
+            sendResponse(exchange,200,"Server shutting down");
             apiActionHelper.performAction("shutdown");
+        }
 
-        if ("POST".equals(exchange.getRequestMethod())) {
+        else if ("POST".equals(exchange.getRequestMethod())) {
 
             String response = "Task completed successfully!";
 
@@ -41,7 +43,7 @@ public class ApiHandler implements HttpHandler {
     }
 
     public void sendResponse(HttpExchange exchange, int code, String response) throws IOException {
-        exchange.sendResponseHeaders(405, response.length());
+        exchange.sendResponseHeaders(code, response.length());
         OutputStream os = exchange.getResponseBody();
         os.write(response.getBytes());
         os.close();
