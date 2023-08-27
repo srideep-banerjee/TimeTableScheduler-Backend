@@ -18,9 +18,9 @@ public class ApiHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (exchange.getRequestURI().getPath().equals("/io/shutdown")){
-            sendResponse(exchange,200,"Server shutting down");
-            apiActionHelper.performAction("shutdown");
+        apiActionHelper.performAction("heart beat received");
+        if (exchange.getRequestURI().getPath().equals("/io/heartbeat")){
+            sendResponse(exchange,200,"Ok");
         }
 
         else if ("POST".equals(exchange.getRequestMethod())) {

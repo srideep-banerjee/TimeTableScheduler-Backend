@@ -238,7 +238,7 @@ public class Generator {
         populationStorage=new PopulationStorage(generation);
         int index=0;
 
-        //copy the top individuals of previous generation as non crossed individuals
+        //copy the top individuals of previous generation as non-crossed individuals
         for(;index<populationSize*(1-crossoverRate);index++){
             PrintStream ps=populationStorage.getChromosomeWriter(index);
             Scanner sc=prevPopulationStorage.getChromosomeReader(selectedIndices[index]);
@@ -247,7 +247,9 @@ public class Generator {
             sc.close();
         }
 
-        for (;index<populationSize*crossoverRate-1;index++){
+        int mutationCount=(int)(populationSize*mutationRate);
+        //add the crossed individuals from any two selected parents
+        for (;index<populationSize-mutationCount;index++){
             //select two random indices to cross
             int ind1=selectedIndices[random.nextInt(selectedIndices.length)];
             int ind2=selectedIndices[random.nextInt(selectedIndices.length)];
@@ -268,7 +270,9 @@ public class Generator {
             ps.close();
         }
 
-        generateRandomChromosome(populationSize-1);
+        //add mutated individuals to the population
+        for(;index<populationSize;index++)
+            generateRandomChromosome(index);
     }
 
 }
