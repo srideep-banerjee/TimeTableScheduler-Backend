@@ -11,8 +11,7 @@ import java.net.URI;
 public class Main {
     static LocalServer ls;
     public static void main(String[] args) {
-        int port=5999;
-        ls=new LocalServer(port);
+        ls=new LocalServer();
 
         ApiActionHelper aah= ApiActionHelper.getInstance();
 
@@ -27,7 +26,7 @@ public class Main {
         });
 
         try {
-            Desktop.getDesktop().browse(new URI("http://localhost:"+port+"/"));
+            Desktop.getDesktop().browse(new URI("http://localhost:"+ls.getPort()+"/"));
         } catch (Exception e) {
             System.out.println(e);
         }

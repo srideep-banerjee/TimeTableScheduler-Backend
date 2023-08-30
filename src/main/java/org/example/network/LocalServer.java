@@ -4,39 +4,50 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.Random;
 
 public class LocalServer {
-    private String homeHtml = "Test.html";
+    private final String homeHtml = "Dashboard.html";
     private HttpServer server;
+    private int port;
 
-    public LocalServer(int port) {
-        try {
-            this.server = HttpServer.create(new InetSocketAddress(port), 0);
-            server.createContext("/", exchange -> {
-                try {
-                    FileInputStream fis = new FileInputStream("web/" + homeHtml);
-                    byte[] bytes = fis.readAllBytes();
-                    fis.close();
-                    exchange.getResponseHeaders().set("Content-Type", "text/html");
-                    exchange.sendResponseHeaders(200, bytes.length);
-                    OutputStream os = exchange.getResponseBody();
-                    os.write(bytes);
-                    os.close();
-                } catch (IOException e) {
-                    System.out.println(e);
-                }
-            });
-
-            server.createContext("/io", new ApiHandler(server));
-
-            //create context from web files
-            addFileContexts(server);
-            //start server
-            server.start();
-            System.out.println("Server started on port 5999");
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+    public LocalServer() {
+        Random random = new Random();
+        while (true) {
+            try {
+                this.port = random.nextInt(5000, 65535);
+                this.server = HttpServer.create(new InetSocketAddress(port), 0);
+                break;
+            } catch (IOException e) {
+            }
         }
+        server.createContext("/", exchange -> {
+            try {
+                FileInputStream fis = new FileInputStream("web/" + homeHtml);
+                byte[] bytes = fis.readAllBytes();
+                fis.close();
+                exchange.getResponseHeaders().set("Content-Type", "text/html");
+                exchange.sendResponseHeaders(200, bytes.length);
+                OutputStream os = exchange.getResponseBody();
+                os.write(bytes);
+                os.close();
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+        });
+
+        server.createContext("/io", new ApiHandler(server));
+
+        //create context from web files
+        addFileContexts(server);
+        //start server
+        server.start();
+        System.out.println("Server started on port "+this.port);
+
+    }
+
+    public int getPort() {
+        return this.port;
     }
 
     public void addFileContexts(HttpServer server) {
