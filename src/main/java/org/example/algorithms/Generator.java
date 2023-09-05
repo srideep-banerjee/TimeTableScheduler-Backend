@@ -2,7 +2,8 @@ package org.example.algorithms;
 
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
-import org.example.pojo.Schedule;
+import org.example.interfaces.OnResultListener;
+import org.example.pojo.ScheduleStructure;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -18,28 +19,40 @@ public class Generator {
     private String[] subjectCodeArray=null;
     private String[] teacherNameArray=null;
     private PopulationStorage populationStorage;
-    private float[] fitness;
-    private Integer[] selectedIndices;
+    private final float[] fitness;
+    private final Integer[] selectedIndices;
     private float averageFitness=0;
     private float maxFitness=0;
     private int generation = 0;
     final private Random random=new Random();
+    private final OnResultListener onResultListener;
     SubjectDao subjectDao=SubjectDao.getInstance();
     TeacherDao teacherDao=TeacherDao.getInstance();
+    ScheduleStructure scheduleData= ScheduleStructure.getInstance();
+    boolean stopped=false;
 
-    public Generator(){
+    public Generator(OnResultListener onResultListener){
         fitness=new float[populationSize];
         selectedIndices=new Integer[populationSize/tournamentSize];
+        this.onResultListener=onResultListener;
     }
 
-    public void generate() throws IOException {
-        updateVariables();
-        populate();
-        while(maxFitness!=1 && generation<=1000){
-            calculateFitness();
-            selectParents();
-            generateNewPopulation();
-        }
+    public void generate() {
+        new Thread(()->{
+            try{
+                updateVariables();
+                populate();
+                while(maxFitness!=1 && generation<=2000){
+                    calculateFitness();
+                    selectParents();
+                    generateNewPopulation();
+                    generation++;
+                }
+                if(generation>2000)onResultListener.onError("Couldn't find stable time table with given constraints");
+            }catch (IOException e){
+                onResultListener.onError(e.getMessage());
+            }
+        }).start();
     }
 
     private void updateVariables(){
@@ -48,28 +61,28 @@ public class Generator {
         this.teacherNameArray= teacherDao.keySet().toArray(String[]::new);
 
         //update totalLectureCount and practicalSubjects
-        totalLectureCount= Schedule.getInstance().getTotalLectureCount();
+        totalLectureCount= scheduleData.getTotalLectureCount();
     }
 
-    //chromosome format: {day(0-4) period(0-periodCount-1), section(0-sectionCount), teacherIndex, subjectIndex}
-    //Ex : {13,33,0,4}
     private void populate() throws IOException {
         populationStorage=new PopulationStorage(generation);
-        for(int i=0;i<populationSize;i++){
+        for(int i=0;i<populationSize && !stopped;i++){
             generateRandomChromosome(i);
         }
         generation++;
     }
 
+    //chromosome format: {day(0-4) period(0-periodCount-1), section(0-sectionCount), teacherIndex, subjectIndex}
+    //Ex : {13,33,0,4}
     private void generateRandomChromosome(int index) throws IOException{
         PrintStream ps=populationStorage.getChromosomeWriter(index);
 
-        for(int i=0;i<this.totalLectureCount;i++){
-            Schedule s=Schedule.getInstance();
+        for(int i=0;i<this.totalLectureCount && !stopped;i++){
             short i4=(short) random.nextInt(subjectCodeArray.length);
             short sem=(short) subjectDao.get(subjectCodeArray[i4]).getSem();
-            short i2=(short) random.nextInt(s.getSectionCount(sem));
-            short i1=(short)(random.nextInt(5)*10+random.nextInt(s.getPeriodCount(sem)));
+            short i2=(short) random.nextInt(scheduleData.getSectionCount(sem));
+            short period=getRandomExcluding(scheduleData.getPeriodCount(),scheduleData.getBreakLocations(sem));
+            short i1=(short)(random.nextInt(5)*10+period);
             short i3=(short) random.nextInt(teacherNameArray.length);
             ps.println(i1);
             ps.println(i2);
@@ -82,7 +95,7 @@ public class Generator {
     private void calculateFitness()throws IOException{
         float sum=0f;
         maxFitness=0;
-        for(int i=0;i<populationSize;i++){
+        for(int i=0;i<populationSize && !stopped;i++){
             fitness[i]=1f/(1f+countHardConstraintViolation(i));
             sum+=fitness[i];
             if(fitness[i]>maxFitness)maxFitness=fitness[i];
@@ -109,13 +122,13 @@ public class Generator {
 
         Scanner sc=populationStorage.getChromosomeReader(index);
 
-        for(int i=0;i<this.totalLectureCount;i++){
+        for(int i=0;i<this.totalLectureCount && !stopped;i++){
             short i1=sc.nextShort();
             short i2=sc.nextShort();
             short i3=sc.nextShort();
             short i4=sc.nextShort();
-            short day=(short)(i1/10);
-            short period=(short)(i1%10);
+            short day=(short)(i1/10+1);
+            short period=(short)(i1%10+1);
             short semester=(short) subjectDao.get(subjectCodeArray[i4]).getSem();
             short section=i2;
             short teacherIndex= i3;
@@ -175,7 +188,7 @@ public class Generator {
 
         //evaluating h3
         for(String subject:subjectCodeArray){
-            for(int i=1;i<=Schedule.getInstance().getSectionCount(subjectDao.get(subject).getSem());i++){
+            for(int i = 1; i<= scheduleData.getSectionCount(subjectDao.get(subject).getSem()); i++){
                 if(!h3.containsKey(String.format("%s,%d",subject,i)))
                     count+=subjectDao.get(subject).getLectureCount();
                 else
@@ -189,6 +202,7 @@ public class Generator {
             List<short[]> slots=h89.get(key);
             HashSet<Short> teachers=new HashSet<>();
 
+            //finding count of slot with different days
             float sum=0;
             for(short[] slot:slots)sum+=slot[0];
             float mean=sum / slots.size();
@@ -199,10 +213,11 @@ public class Generator {
             slots.sort(Comparator.comparingInt(a -> a[1]));
             for(byte i=1;i< slots.size();i++)
                 if(slots.get(i)[1]-1!=slots.get(i-1)[1])count++;
-            short breakLocation=(short)Schedule.getInstance().getBreakLocation(subjectDao.get(subject).getSem());
-            short start=slots.get(0)[1],end=slots.get(slots.size()-1)[1];
-            if(start<=breakLocation && end>breakLocation)
-                count+=Math.min(breakLocation-start+1,end-breakLocation);
+            for(short breakLocation: scheduleData.getBreakLocations(subjectDao.get(subject).getSem())){
+                short start=slots.get(0)[1],end=slots.get(slots.size()-1)[1];
+                if(start<breakLocation && end>breakLocation)
+                    count++;
+            }
 
             for(short[] slot:slots)teachers.add(slot[2]);
             for(Short teacherIndex:teachers){
@@ -221,7 +236,7 @@ public class Generator {
     }
 
     private void selectParents(){
-        for(int i=0;i<selectedIndices.length;i++){
+        for(int i=0;i<selectedIndices.length && !stopped;i++){
             int max=random.nextInt(populationSize);
             for(int j=1;j<tournamentSize;j++){
                 int next=random.nextInt(populationSize);
@@ -239,7 +254,7 @@ public class Generator {
         int index=0;
 
         //copy the top individuals of previous generation as non-crossed individuals
-        for(;index<populationSize*(1-crossoverRate);index++){
+        for(;index<populationSize*(1-crossoverRate) && !stopped;index++){
             PrintStream ps=populationStorage.getChromosomeWriter(index);
             Scanner sc=prevPopulationStorage.getChromosomeReader(selectedIndices[index]);
             for(int i=0;i<totalLectureCount*4;i++) ps.println(sc.nextShort());
@@ -249,7 +264,7 @@ public class Generator {
 
         int mutationCount=(int)(populationSize*mutationRate);
         //add the crossed individuals from any two selected parents
-        for (;index<populationSize-mutationCount;index++){
+        for (;index<populationSize-mutationCount && !stopped;index++){
             //select two random indices to cross
             int ind1=selectedIndices[random.nextInt(selectedIndices.length)];
             int ind2=selectedIndices[random.nextInt(selectedIndices.length)];
@@ -275,4 +290,14 @@ public class Generator {
             generateRandomChromosome(index);
     }
 
+    private short getRandomExcluding(short upperBound,byte[] exclude){
+        short random=(short) this.random.nextInt(upperBound-exclude.length);
+        for (byte ex:exclude)
+            if(random<ex-1)random++;
+        return random;
+    }
+
+    public void stop(){
+        this.stopped=true;
+    }
 }

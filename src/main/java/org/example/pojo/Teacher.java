@@ -1,44 +1,28 @@
 package org.example.pojo;
 
-import org.example.interfaces.OnModifiedListener;
+import com.fasterxml.jackson.annotation.*;
 
 import java.util.*;
 
+@JsonPropertyOrder({"freeTime", "subjects"})
+@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public class Teacher {
-    private final String name;
-    private HashSet<List<Integer>> freeTime;
-    private HashSet<String> subjects;
-    private OnModifiedListener onModifiedListener;
+    private final HashSet<int[]> freeTime;
+    private final HashSet<String> subjects;
 
-    public Teacher(String name, HashSet<List<Integer>> freeTime, HashSet<String> subjects) {
-        this.name = name;
+    public Teacher(@JsonProperty("freeTime")HashSet<int[]> freeTime, @JsonProperty("subjects")HashSet<String> subjects) {
         this.freeTime=freeTime;
         this.subjects = subjects;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public HashSet<List<Integer>> getFreeTime() {
+    @JsonGetter("freeTime")
+    public HashSet<int[]> getFreeTime() {
         return freeTime;
     }
 
-    public void setFreeTime(HashSet<List<Integer>> freeTime) {
-        this.freeTime = freeTime;
-        onModifiedListener.onModified();
-    }
-
+    @JsonGetter("subjects")
     public HashSet<String> getSubjects() {
         return subjects;
     }
 
-    public void setSubjects(HashSet<String> subjects){
-        this.subjects=subjects;
-        onModifiedListener.onModified();
-    }
-
-    public void setOnModifiedListener(OnModifiedListener onModifiedListener) {
-        this.onModifiedListener = onModifiedListener;
-    }
 }

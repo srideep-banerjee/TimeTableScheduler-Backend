@@ -16,4 +16,9 @@ public class TeacherDao extends HashMap<String, Teacher> {
         }
         return instance;
     }
+
+    @Override
+    public Teacher put(String key,Teacher value){
+        return super.put(key.toUpperCase(),value);
+    }
 }

@@ -1,60 +1,42 @@
 package org.example.pojo;
 
-import org.example.interfaces.OnModifiedListener;
+import com.fasterxml.jackson.annotation.*;
 
+@JsonPropertyOrder({"sem", "lectureCount","isPractical","roomCode"})
+@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public class Subject {
-    private final String subjectCode;
-    private int sem;
-    private int lectureCount;
+    @JsonAlias({"semester"})
+    private final int sem;
+    private final int lectureCount;
+    @JsonAlias({"practical"})
     private final boolean isPractical;
-    private String roomCode;
-    private OnModifiedListener onModifiedListener;
+    @JsonAlias({"room"})
+    private final String roomCode;
 
-    public Subject(String subjectCode, int sem, int lectureCount, boolean isPractical, String roomCode, OnModifiedListener onModifiedListener) {
-        this.subjectCode = subjectCode;
+    public Subject(@JsonProperty("sem")int sem, @JsonProperty("lectureCount")int lectureCount, @JsonProperty("isPractical")boolean isPractical, @JsonProperty("roomCode")String roomCode) {
         this.sem = sem;
         this.lectureCount = lectureCount;
         this.isPractical = isPractical;
         this.roomCode = roomCode;
-        this.onModifiedListener = onModifiedListener;
     }
 
-    public String getSubjectCode() {
-        return subjectCode;
-    }
-
+    @JsonGetter("sem")
     public int getSem() {
         return sem;
     }
 
-    public void setSem(int sem) {
-        this.sem = sem;
-        onModifiedListener.onModified();
-    }
-
+    @JsonGetter("lectureCount")
     public int getLectureCount() {
         return lectureCount;
     }
 
-    public void setLectureCount(int lectureCount) {
-        this.lectureCount = lectureCount;
-        onModifiedListener.onModified();
-    }
-
+    @JsonGetter("isPractical")
     public boolean isPractical() {
         return isPractical;
     }
 
-    public void setOnModifiedListener(OnModifiedListener onModifiedListener) {
-        this.onModifiedListener = onModifiedListener;
-    }
-
+    @JsonGetter("roomCode")
     public String getRoomCode() {
         return roomCode;
-    }
-
-    public void setRoomCode(String roomCode) {
-        this.roomCode = roomCode;
-        onModifiedListener.onModified();
     }
 }

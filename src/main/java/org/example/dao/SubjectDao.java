@@ -16,4 +16,9 @@ public class SubjectDao extends HashMap<String, Subject> {
         }
         return instance;
     }
+
+    @Override
+    public Subject put(String key,Subject value){
+        return super.put(key.toUpperCase(),value);
+    }
 }
