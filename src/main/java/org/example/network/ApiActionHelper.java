@@ -20,16 +20,12 @@ public class ApiActionHelper {
     }
 
     public void setAction(String name, ApiAction action) {
-        if (action != null) actions.put(name, action);
+        if (action != null) actions.put(name.toUpperCase(), action);
     }
 
     public boolean performAction(String name) {
-        if (!actions.containsKey(name)) return false;
-        actions.get(name).perform();
+        if (!actions.containsKey(name.toUpperCase())) return false;
+        actions.get(name.toUpperCase()).perform();
         return true;
-    }
-
-    public void clear() {
-        actions.clear();
     }
 }

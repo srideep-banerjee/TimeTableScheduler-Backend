@@ -6,8 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.example.algorithms.Generator;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
+import org.example.interfaces.OnResultListener;
+import org.example.pojo.ScheduleSolution;
 import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
@@ -19,12 +22,14 @@ public class ApiHandler implements HttpHandler {
     HttpServer server;
     ApiActionHelper apiActionHelper;
     ObjectMapper objectMapper;
+    Generator generator;
 
 
     public ApiHandler(HttpServer server) {
         this.server = server;
         apiActionHelper = ApiActionHelper.getInstance();
         objectMapper=new ObjectMapper();
+        generator=new Generator(null);
     }
 
     @Override
@@ -80,8 +85,9 @@ public class ApiHandler implements HttpHandler {
             }
 
             else if (requestMethod.equals("DELETE")) {
-                apiActionHelper.performAction("stop generator");
-                apiActionHelper.performAction("clear schedule solution");
+                generator.stop();
+                ScheduleSolution.getInstance().removeAllTeachers();
+                TeacherDao.getInstance().clear();
                 sendResponse(exchange,200,"Request accepted");
             }
 
@@ -135,8 +141,13 @@ public class ApiHandler implements HttpHandler {
                 }
             }
             else if(requestMethod.equals("DELETE")){
-                apiActionHelper.performAction("stop generator");
-                apiActionHelper.performAction("clear schedule solution");
+                if(!TeacherDao.getInstance().containsKey(name)){
+                    sendResponse(exchange,404,"Teacher not found");
+                    return;
+                }
+                generator.stop();
+                ScheduleSolution.getInstance().removeTeacherByName(name);
+                TeacherDao.getInstance().remove(name);
                 sendResponse(exchange,200,"Request accepted");
             }
             else sendInvalidOperationResponse(exchange);
@@ -177,12 +188,12 @@ public class ApiHandler implements HttpHandler {
                 }
             }
             else if (requestMethod.equals("DELETE")) {
-                apiActionHelper.performAction("stop generator");
-                apiActionHelper.performAction("clear schedule solution");
+                generator.stop();
+                ScheduleSolution.getInstance().resetData();
                 sendResponse(exchange,200,"Request accepted");
             }
         }
-        else if(path.equals("/io/subjects/names")){
+        else if(path.equals("/io/subjects/codes")){
             if(requestMethod.equals("GET")) {
                 String response= null;
                 try {
@@ -198,7 +209,7 @@ public class ApiHandler implements HttpHandler {
             String code=path.substring(path.lastIndexOf("/"+1)).toUpperCase();
 
             if(requestMethod.equals("GET")){
-                if(!TeacherDao.getInstance().containsKey(code)){
+                if(!SubjectDao.getInstance().containsKey(code)){
                     sendResponse(exchange,404,"Subject not found");
                     return;
                 }
@@ -226,11 +237,50 @@ public class ApiHandler implements HttpHandler {
                 }
             }
             else if(requestMethod.equals("DELETE")){
-                apiActionHelper.performAction("stop generator");
-                apiActionHelper.performAction("clear schedule solution");
+                if(!SubjectDao.getInstance().containsKey(code)){
+                    sendResponse(exchange,404,"Subject not found");
+                    return;
+                }
+                generator.stop();
+                ScheduleSolution.getInstance().removeSubjectByCode(code);
                 sendResponse(exchange,200,"Request accepted");
             }
             else sendInvalidOperationResponse(exchange);
+        }
+        else if(path.equals("/io/schedule")){
+            String query=exchange.getRequestURI().getQuery().toLowerCase();
+            boolean generateNew=query.contains("generatenew=true");
+            if(requestMethod.equals("GET")){
+                if(generateNew){
+                    generator.stop();
+                    generator=new Generator(new OnResultListener() {
+                        @Override
+                        public void onResult() {
+
+                            try {
+                                String response = new ObjectMapper().writeValueAsString(ScheduleSolution.getInstance().getData());
+                                sendResponse(exchange,200,response);
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onError(String msg) {
+                            sendResponse(exchange,500,msg);
+                        }
+                    });
+                    generator.generate();
+                }
+                else{
+                    try {
+                        String response = new ObjectMapper().writeValueAsString(ScheduleSolution.getInstance().getData());
+                        sendResponse(exchange,200,response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
         else
             // Handle other HTTP methods or unsupported paths

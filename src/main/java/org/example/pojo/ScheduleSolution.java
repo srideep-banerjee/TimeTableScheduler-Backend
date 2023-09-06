@@ -6,12 +6,22 @@ public class ScheduleSolution {
 
     //format: data[semester][section][day][period][]=new String[]{"teacherName","subjectCode"}
     private String[][][][][] data;
+    private static ScheduleSolution instance=null;
 
-    public ScheduleSolution(){
+    private ScheduleSolution(){
+        this.resetData();
+    }
+
+    public static ScheduleSolution getInstance() {
+        if(instance==null)instance=new ScheduleSolution();
+        return instance;
+    }
+    public void resetData(){
         ScheduleStructure ss=ScheduleStructure.getInstance();
         data=new String[ss.getSemesterCount()][][][][];
+        byte periodCount=ss.getPeriodCount();
         for(int i=0;i<data.length;i++){
-            data[i]=new String[ss.getSectionCount(i+1)][5][ss.getPeriodCount()][2];
+            data[i]=new String[ss.getSectionCount(i+1)][5][periodCount][2];
         }
     }
 
@@ -26,6 +36,46 @@ public class ScheduleSolution {
             String teacher=teachers[chromo[i+2]];
             String subject=subjects[chromo[i+3]];
             data[semester][section][day][period]=new String[]{teacher,subject};
+        }
+    }
+
+    public void removeAllTeachers(){
+        for(int i=0;i<data.length;i++){
+            for(int j=0;j<data[i].length;j++){
+                for(int k=0;k<5;k++){
+                    for(int l=0;l<data[i][j][k].length;l++){
+                        data[i][j][k][l][0]=null;
+                    }
+                }
+            }
+        }
+    }
+
+    public void removeTeacherByName(String name){
+        for(int i=0;i<data.length;i++){
+            for(int j=0;j<data[i].length;j++){
+                for(int k=0;k<5;k++){
+                    for(int l=0;l<data[i][j][k].length;l++){
+                        if(data[i][j][k][l][0]!=null && data[i][j][k][l][0].equals(name))
+                            data[i][j][k][l][0]=null;
+                    }
+                }
+            }
+        }
+    }
+
+    public void removeSubjectByCode(String code){
+        for(int i=0;i<data.length;i++){
+            for(int j=0;j<data[i].length;j++){
+                for(int k=0;k<5;k++){
+                    for(int l=0;l<data[i][j][k].length;l++){
+                        if(data[i][j][k][l][1]!=null && data[i][j][k][l][1].equals(code)) {
+                            data[i][j][k][l][0] = null;
+                            data[i][j][k][l][1] = null;
+                        }
+                    }
+                }
+            }
         }
     }
 

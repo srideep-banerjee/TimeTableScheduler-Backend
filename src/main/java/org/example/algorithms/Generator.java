@@ -38,6 +38,7 @@ public class Generator {
     }
 
     public void generate() {
+        stopped=false;
         new Thread(()->{
             try{
                 updateVariables();
