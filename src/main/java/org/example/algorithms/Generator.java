@@ -138,7 +138,7 @@ public class Generator {
             String subject=subjectCodeArray[i4];
 
             //evaluating h2
-            if(teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day,period)))
+            if(teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day,period)) || teacherDao.get(teacher).getFreeTime().isEmpty())
                 count++;
 
             //processing h3
@@ -214,11 +214,6 @@ public class Generator {
             slots.sort(Comparator.comparingInt(a -> a[1]));
             for(byte i=1;i< slots.size();i++)
                 if(slots.get(i)[1]-1!=slots.get(i-1)[1])count++;
-            for(short breakLocation: scheduleData.getBreakLocations(subjectDao.get(subject).getSem())){
-                short start=slots.get(0)[1],end=slots.get(slots.size()-1)[1];
-                if(start<breakLocation && end>breakLocation)
-                    count++;
-            }
 
             for(short[] slot:slots)teachers.add(slot[2]);
             for(Short teacherIndex:teachers){
