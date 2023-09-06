@@ -19,6 +19,7 @@ public class LocalServer {
                 this.server = HttpServer.create(new InetSocketAddress(port), 0);
                 break;
             } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         server.createContext("/", exchange -> {

@@ -26,6 +26,7 @@ public class ScheduleSolution {
     }
 
     public void parseChromo(short[] chromo, String[] subjects, String[] teachers){
+        this.resetData();
         SubjectDao subjectDao=SubjectDao.getInstance();
         if(chromo.length%4!=0) throw new RuntimeException("Invalid chromosome");
         for(int i=0;i<chromo.length/4;i++){
@@ -82,7 +83,16 @@ public class ScheduleSolution {
     public String[][][][][] getData(){
         return data;
     }
+
+    public void setData(String[][][][][] data) {
+        this.data = data;
+    }
+
     public String[][][] getData(int semester, int section){
         return this.data[semester-1][section-1];
+    }
+
+    public void setData(int semester, int section,String[][][] data){
+        this.data[semester-1][section-1]=data;
     }
 }

@@ -23,6 +23,7 @@ public class ApiHandler implements HttpHandler {
     ApiActionHelper apiActionHelper;
     ObjectMapper objectMapper;
     Generator generator;
+    static int ii;
 
 
     public ApiHandler(HttpServer server) {
@@ -34,6 +35,7 @@ public class ApiHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) {
+        try{
         apiActionHelper.performAction("heart beat received");
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
@@ -95,9 +97,9 @@ public class ApiHandler implements HttpHandler {
         }
         else if(path.equals("/io/teachers/names")){
             if(requestMethod.equals("GET")) {
-                String response= null;
+
                 try {
-                    response = new ObjectMapper().writeValueAsString(TeacherDao.getInstance().keySet());
+                    String response = new ObjectMapper().writeValueAsString(TeacherDao.getInstance().keySet());
                     sendJsonResponse(exchange,200,response);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
@@ -106,7 +108,7 @@ public class ApiHandler implements HttpHandler {
             else sendInvalidOperationResponse(exchange);
         }
         else if (path.startsWith("/io/teachers/") && (path.length()>"/io/teachers/".length())) {
-            String name=path.substring(path.lastIndexOf("/"+1)).toUpperCase();
+            String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();
 
             if(requestMethod.equals("GET")){
                 if(!TeacherDao.getInstance().containsKey(name)){
@@ -281,10 +283,18 @@ public class ApiHandler implements HttpHandler {
                     }
                 }
             }
+            else if(requestMethod.equals("PUT")){
+
+            }
         }
         else
             // Handle other HTTP methods or unsupported paths
             sendTextResponse(exchange, 405, "Unsupported request");
+
+        System.out.println(path + "again");
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
     }
 
