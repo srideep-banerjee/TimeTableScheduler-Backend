@@ -7,7 +7,7 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 
 public class LocalServer {
-    private final String homeHtml = "Dashboard.html";
+    private final String homeHtml = "Testing.html";
     private HttpServer server;
     private int port;
 

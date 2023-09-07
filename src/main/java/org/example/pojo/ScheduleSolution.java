@@ -4,7 +4,7 @@ import org.example.dao.SubjectDao;
 
 public class ScheduleSolution {
 
-    //format: data[semester][section][day][period][]=new String[]{"teacherName","subjectCode"}
+    //format: data[semester][section][day][period]=new String[]{"teacherName","subjectCode"}
     private String[][][][][] data;
     private static ScheduleSolution instance=null;
 
@@ -65,14 +65,30 @@ public class ScheduleSolution {
         }
     }
 
+    //format of return [day][period]=new String[]{"semester","section","subject code"}
+    public String[][][] getTeacherScheduleByName(String name){
+        byte periodCount=ScheduleStructure.getInstance().getPeriodCount();
+        String[][][] sch=new String[5][periodCount][];
+        for(int i=0;i<data.length;i++){
+            for(int j=0;j<data[i].length;j++){
+                for(int k=0;k<5;k++){
+                    for(int l=0;l<data[i][j][k].length;l++){
+                        if(data[i][j][k][l][0]!=null && data[i][j][k][l][0].equals(name))
+                            sch[k][l]= new String[]{String.valueOf(i + 1),String.valueOf(j + 1),data[i][j][k][l][1]};
+                    }
+                }
+            }
+        }
+        return sch;
+    }
+
     public void removeSubjectByCode(String code){
         for(int i=0;i<data.length;i++){
             for(int j=0;j<data[i].length;j++){
                 for(int k=0;k<5;k++){
                     for(int l=0;l<data[i][j][k].length;l++){
                         if(data[i][j][k][l][1]!=null && data[i][j][k][l][1].equals(code)) {
-                            data[i][j][k][l][0] = null;
-                            data[i][j][k][l][1] = null;
+                            data[i][j][k][l]=new String[2];
                         }
                     }
                 }

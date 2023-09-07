@@ -138,7 +138,7 @@ public class Generator {
             String subject=subjectCodeArray[i4];
 
             //evaluating h2
-            if(teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day,period)) || teacherDao.get(teacher).getFreeTime().isEmpty())
+            if(teacherDao.get(teacher).getFreeTime().contains(new int[]{day,period}) || teacherDao.get(teacher).getFreeTime().isEmpty())
                 count++;
 
             //processing h3

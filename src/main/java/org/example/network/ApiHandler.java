@@ -35,7 +35,7 @@ public class ApiHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) {
-        try{
+        //try{
         apiActionHelper.performAction("heart beat received");
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
@@ -78,12 +78,14 @@ public class ApiHandler implements HttpHandler {
                         sendTextResponse(exchange, 400, "Name can't be longer than 50 characters");
                         return;
                     }
-                }
-                try {
-                    objectMapper.readerForUpdating(TeacherDao.getInstance()).readValue(arr);
-                    sendTextResponse(exchange,200,"Teachers updated");
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
+                    JsonNode teacherJson=arr.get(name);
+                    try {
+                        Teacher teacher=objectMapper.reader().readValue(teacherJson,Teacher.class);
+                        TeacherDao.getInstance().put(name,teacher);
+                        sendTextResponse(exchange,200,"Teachers updated");
+                    } catch (IOException e) {
+                        sendTextResponse(exchange,400,"Invalid data format");
+                    }
                 }
             }
 
@@ -170,6 +172,7 @@ public class ApiHandler implements HttpHandler {
                     arr = objectMapper.readTree(exchange.getRequestBody());
                 } catch (IOException e) {
                     sendTextResponse(exchange,400,"Invalid data format");
+                    System.out.println(e);
                     return;
                 }
                 for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
@@ -182,12 +185,14 @@ public class ApiHandler implements HttpHandler {
                         sendTextResponse(exchange, 400, "Subject code can't be longer than 20 characters");
                         return;
                     }
-                }
-                try {
-                    objectMapper.readerForUpdating(SubjectDao.getInstance()).readValue(arr);
-                    sendTextResponse(exchange,200,"Subjects updated");
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
+                    JsonNode subJson=arr.get(code);
+                    try {
+                        Subject subject = objectMapper.reader().readValue(subJson, Subject.class);
+                        SubjectDao.getInstance().put(code,subject);
+                        sendTextResponse(exchange,200,"Subjects updated");
+                    }catch(IOException e){
+                        sendTextResponse(exchange,400,"Invalid data format");
+                    }
                 }
             }
             else if (requestMethod.equals("DELETE")) {
@@ -195,6 +200,7 @@ public class ApiHandler implements HttpHandler {
                 ScheduleSolution.getInstance().resetData();
                 sendTextResponse(exchange,200,"Request accepted");
             }
+            else sendInvalidOperationResponse(exchange);
         }
         else if(path.equals("/io/subjects/codes")){
             if(requestMethod.equals("GET")) {
@@ -262,7 +268,7 @@ public class ApiHandler implements HttpHandler {
                         public void onResult() {
 
                             try {
-                                String response = new ObjectMapper().writeValueAsString(ScheduleSolution.getInstance().getData());
+                                String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
                                 sendJsonResponse(exchange,200,response);
                             } catch (JsonProcessingException e) {
                                 e.printStackTrace();
@@ -278,7 +284,7 @@ public class ApiHandler implements HttpHandler {
                 }
                 else{
                     try {
-                        String response = new ObjectMapper().writeValueAsString(ScheduleSolution.getInstance().getData());
+                        String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
                         sendTextResponse(exchange,200,response);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
@@ -286,16 +292,50 @@ public class ApiHandler implements HttpHandler {
                 }
             }
             else if(requestMethod.equals("PUT")){
-
+                try {
+                    String[][][][][] data=objectMapper.readValue(exchange.getRequestBody(), String[][][][][].class);
+                    ScheduleSolution.getInstance().setData(data);
+                    sendTextResponse(exchange,200,"Request accepted");
+                } catch (IOException e) {
+                    sendTextResponse(exchange,400,"Invalid data format");
+                }
             }
+            else if(requestMethod.equals("DELETE")){
+                try{
+                    ScheduleSolution.getInstance().resetData();
+                    sendTextResponse(exchange,200,"Request accepted");
+                }catch(RuntimeException e){
+                    sendTextResponse(exchange,500,"Failed to delete schedule data");
+                }
+            }
+            else sendInvalidOperationResponse(exchange);
+        }
+        else if(path.startsWith("/io/schedule/teacher/") && path.length()>21){
+            String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();
+            if(requestMethod.equals("GET")){
+                if(TeacherDao.getInstance().containsKey(name)){
+                    sendTextResponse(exchange,404,"Teacher not found");
+                    return;
+                }
+                try {
+                    String response=objectMapper.writeValueAsString(ScheduleSolution.getInstance().getTeacherScheduleByName(name));
+                    sendTextResponse(exchange,200,response);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }
+            else sendInvalidOperationResponse(exchange);
+        }
+        else if (path.startsWith("/io/schedule/structure")){
+
         }
         else
             // Handle other HTTP methods or unsupported paths
             sendTextResponse(exchange, 405, "Unsupported request");
 
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+        //}catch(Exception e){
+        //    e.printStackTrace();
+        //}
 
     }
 
