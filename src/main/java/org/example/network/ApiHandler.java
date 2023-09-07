@@ -246,7 +246,7 @@ public class ApiHandler implements HttpHandler {
                 }
                 generator.stop();
                 ScheduleSolution.getInstance().removeSubjectByCode(code);
-                TeacherDao.getInstance().remove(code);
+                SubjectDao.getInstance().remove(code);
                 sendTextResponse(exchange,200,"Request accepted");
             }
             else sendInvalidOperationResponse(exchange);
