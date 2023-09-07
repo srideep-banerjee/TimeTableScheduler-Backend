@@ -208,7 +208,7 @@ public class ApiHandler implements HttpHandler {
             else sendInvalidOperationResponse(exchange);
         }
         else if(path.startsWith("/io/subjects/") && (path.length()>"/io/subjects/".length())){
-            String code=path.substring(path.lastIndexOf("/"+1)).toUpperCase();
+            String code=path.substring(path.lastIndexOf("/")+1).toUpperCase();
 
             if(requestMethod.equals("GET")){
                 if(!SubjectDao.getInstance().containsKey(code)){
