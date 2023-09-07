@@ -39,6 +39,7 @@ public class ApiHandler implements HttpHandler {
         apiActionHelper.performAction("heart beat received");
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
+        System.out.println(requestMethod+" "+path);
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");
@@ -245,6 +246,7 @@ public class ApiHandler implements HttpHandler {
                 }
                 generator.stop();
                 ScheduleSolution.getInstance().removeSubjectByCode(code);
+                TeacherDao.getInstance().remove(code);
                 sendTextResponse(exchange,200,"Request accepted");
             }
             else sendInvalidOperationResponse(exchange);
@@ -291,7 +293,6 @@ public class ApiHandler implements HttpHandler {
             // Handle other HTTP methods or unsupported paths
             sendTextResponse(exchange, 405, "Unsupported request");
 
-        System.out.println(path + "again");
         }catch(Exception e){
             e.printStackTrace();
         }
