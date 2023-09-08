@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Generator {
-    private final int populationSize=100;
+    private final int populationSize=200;
     private final int tournamentSize=5;
     private final float crossoverRate=0.9f;
     private final float mutationRate=0.01f;
@@ -45,12 +45,14 @@ public class Generator {
                 populate();
                 while(maxFitness!=1 && generation<=2000){
                     calculateFitness();
+                    System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness);
                     selectParents();
                     generateNewPopulation();
                     generation++;
                 }
                 if(generation>2000)onResultListener.onError("Couldn't find stable time table with given constraints");
             }catch (IOException e){
+                e.printStackTrace();
                 onResultListener.onError(e.getMessage());
             }
         }).start();

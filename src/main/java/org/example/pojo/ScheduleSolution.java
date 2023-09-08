@@ -111,4 +111,12 @@ public class ScheduleSolution {
     public void setData(int semester, int section,String[][][] data){
         this.data[semester-1][section-1]=data;
     }
+
+    public String[][][][] getData(int semester){
+        return this.data[semester-1];
+    }
+
+    public void setData(int semester, String[][][][] data){
+        this.data[semester-1]=data;
+    }
 }

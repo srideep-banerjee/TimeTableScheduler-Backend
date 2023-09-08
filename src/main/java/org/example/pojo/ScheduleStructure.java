@@ -20,10 +20,12 @@ public class ScheduleStructure {
     }
 
     public byte getSectionCount(int semester){
+        semester=semester%2==0?semester/2:(semester+1)/2;
         return this.sectionsPerSemester[semester-1];
     }
 
     public byte[] getBreakLocations(int semester){
+        semester=semester%2==0?semester/2:(semester+1)/2;
         return this.breakPerSemester[semester-1];
     }
 
@@ -34,6 +36,7 @@ public class ScheduleStructure {
     public byte getSemesterCount(){
         return this.semesterCount;
     }
+
 
     public void setSectionsPerSemester(byte[] sectionsPerSemester){
         this.sectionsPerSemester=sectionsPerSemester;

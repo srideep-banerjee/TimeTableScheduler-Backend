@@ -327,7 +327,9 @@ public class ApiHandler implements HttpHandler {
             else sendInvalidOperationResponse(exchange);
         }
         else if (path.startsWith("/io/schedule/structure")){
-
+            if(requestMethod.equals("GET")){
+                
+            }
         }
         else
             // Handle other HTTP methods or unsupported paths
