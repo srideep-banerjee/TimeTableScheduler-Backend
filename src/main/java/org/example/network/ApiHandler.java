@@ -47,9 +47,11 @@ public class ApiHandler implements HttpHandler {
         }
         else if (path.equals("/io/teachers")) {
             if (requestMethod.equals("GET")) {
-                String response;
+                if(TeacherDao.getInstance().isEmpty()){
+                    sendTextResponse(exchange,404,"No teachers found");
+                }
                 try {
-                    response = objectMapper.writeValueAsString(TeacherDao.getInstance());
+                    String response = objectMapper.writeValueAsString(TeacherDao.getInstance());
                     sendJsonResponse(exchange, 200, response);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
@@ -159,6 +161,10 @@ public class ApiHandler implements HttpHandler {
         }
         else if(path.equals("/io/subjects")) {
             if(requestMethod.equals("GET")){
+                if(SubjectDao.getInstance().isEmpty()){
+                    sendTextResponse(exchange,404,"No subjects found");
+                    return;
+                }
                 try {
                     String response=objectMapper.writeValueAsString(SubjectDao.getInstance());
                     sendJsonResponse(exchange,200,response);
