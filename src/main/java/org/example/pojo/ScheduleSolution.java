@@ -2,6 +2,8 @@ package org.example.pojo;
 
 import org.example.dao.SubjectDao;
 
+import java.util.Scanner;
+
 public class ScheduleSolution {
 
     //format: data[semester][section][day][period]=new String[]{"teacherName","subjectCode"}
@@ -25,18 +27,27 @@ public class ScheduleSolution {
         }
     }
 
-    public void parseChromo(short[] chromo, String[] subjects, String[] teachers){
+    public void parseChromo(Scanner sc, String[] subjects, String[] teachers){
         this.resetData();
         SubjectDao subjectDao=SubjectDao.getInstance();
-        if(chromo.length%4!=0) throw new RuntimeException("Invalid chromosome");
-        for(int i=0;i<chromo.length/4;i++){
-            short day=(short)(chromo[i]/10);
-            short period=(short)(chromo[i]%10);
-            short semester=(short) subjectDao.get(subjects[chromo[i+3]]).getSem();
-            short section=chromo[i+1];
-            String teacher=teachers[chromo[i+2]];
-            String subject=subjects[chromo[i+3]];
-            data[semester][section][day][period]=new String[]{teacher,subject};
+
+        for(int i=0;i<subjects.length;i++){
+            byte sem=(byte)subjectDao.get(subjects[i]).getSem();
+            sem=(byte)(sem%2==0?sem/2:(sem+1)/2);
+            byte secCount=ScheduleStructure.getInstance().getSectionCount(sem);
+            boolean practical=subjectDao.get(subjects[i]).isPractical();
+
+            for(byte sec=1;sec<=secCount;sec++){
+                String teacher=null;
+                if(!practical)teacher=teachers[sc.nextShort()];
+                int lectureCount=subjectDao.get(subjects[i]).getLectureCount();
+
+                for(int j=0;j<lectureCount;j++){
+                    if(practical)teacher=teachers[sc.nextShort()];
+                    short value=sc.nextShort();
+                    data[sem][sec][value/10][value%10]=new String[]{teacher,subjects[i]};
+                }
+            }
         }
     }
 
