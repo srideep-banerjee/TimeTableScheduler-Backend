@@ -49,6 +49,7 @@ public class ApiHandler implements HttpHandler {
             if (requestMethod.equals("GET")) {
                 if(TeacherDao.getInstance().isEmpty()){
                     sendTextResponse(exchange,404,"No teachers found");
+                    return;
                 }
                 try {
                     String response = objectMapper.writeValueAsString(TeacherDao.getInstance());
