@@ -2,12 +2,15 @@ package org.example.pojo;
 
 import org.example.dao.SubjectDao;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class ScheduleSolution {
 
     //format: data[semester][section][day][period]=new String[]{"teacherName","subjectCode"}
-    private String[][][][][] data;
+    private List<List<List<List<List<String>>>>> data;
     private static ScheduleSolution instance=null;
 
     private ScheduleSolution(){
@@ -20,10 +23,25 @@ public class ScheduleSolution {
     }
     public void resetData(){
         ScheduleStructure ss=ScheduleStructure.getInstance();
-        data=new String[ss.getSemesterCount()][][][][];
+        data=new ArrayList<>();
         byte periodCount=ss.getPeriodCount();
-        for(int i=0;i<data.length;i++){
-            data[i]=new String[ss.getSectionCount(i+1)][5][periodCount][2];
+        for(int i=0;i<ss.getSemesterCount();i++){
+            List<List<List<List<String>>>> dataSection=new ArrayList<>();
+            for(int j=0;j<ss.getSectionCount(i*2+1);j++){
+                List<List<List<String>>> dataDay=new ArrayList<>();
+                for(int k=0;k<5;k++){
+                    List<List<String>> dataPeriod=new ArrayList<>();
+                    for(int l=0;l<periodCount;l++){
+                        List<String> dataSlot=new ArrayList<>();
+                        dataSlot.add(null);
+                        dataSlot.add(null);
+                        dataPeriod.add(dataSlot);
+                    }
+                    dataDay.add(dataPeriod);
+                }
+                dataSection.add(dataDay);
+            }
+            data.add(dataSection);
         }
     }
 
@@ -33,11 +51,11 @@ public class ScheduleSolution {
 
         for(int i=0;i<subjects.length;i++){
             byte sem=(byte)subjectDao.get(subjects[i]).getSem();
-            sem=(byte)(sem%2==0?sem/2:(sem+1)/2);
             byte secCount=ScheduleStructure.getInstance().getSectionCount(sem);
+            sem=(byte)(sem%2==0?sem/2:(sem+1)/2);
             boolean practical=subjectDao.get(subjects[i]).isPractical();
 
-            for(byte sec=1;sec<=secCount;sec++){
+            for(byte sec=0;sec<secCount;sec++){
                 String teacher=null;
                 if(!practical)teacher=teachers[sc.nextShort()];
                 int lectureCount=subjectDao.get(subjects[i]).getLectureCount();
@@ -45,18 +63,25 @@ public class ScheduleSolution {
                 for(int j=0;j<lectureCount;j++){
                     if(practical)teacher=teachers[sc.nextShort()];
                     short value=sc.nextShort();
-                    data[sem][sec][value/10][value%10]=new String[]{teacher,subjects[i]};
+                    data
+                            .get(sem-1)
+                            .get(sec)
+                            .get(value/10)
+                            .set(value%10,Arrays.asList(teacher,subjects[i]));
                 }
             }
         }
     }
 
     public void removeAllTeachers(){
-        for(int i=0;i<data.length;i++){
-            for(int j=0;j<data[i].length;j++){
+        for(int i=0;i<data.size();i++){
+            var iData=data.get(i);
+            for(int j=0;j<iData.size();j++){
+                var jData=iData.get(j);
                 for(int k=0;k<5;k++){
-                    for(int l=0;l<data[i][j][k].length;l++){
-                        data[i][j][k][l][0]=null;
+                    var kData=jData.get(k);
+                    for(int l=0;l<kData.size();l++){
+                        kData.get(l).set(0,null);
                     }
                 }
             }
@@ -64,12 +89,12 @@ public class ScheduleSolution {
     }
 
     public void removeTeacherByName(String name){
-        for(int i=0;i<data.length;i++){
-            for(int j=0;j<data[i].length;j++){
+        for(int i=0;i<data.size();i++){
+            for(int j=0;j<data.get(i).size();j++){
                 for(int k=0;k<5;k++){
-                    for(int l=0;l<data[i][j][k].length;l++){
-                        if(data[i][j][k][l][0]!=null && data[i][j][k][l][0].equals(name))
-                            data[i][j][k][l][0]=null;
+                    for(int l=0;l<data.get(i).get(j).get(k).size();l++){
+                        if(data.get(i).get(j).get(k).get(l).get(0)!=null && data.get(i).get(j).get(k).get(l).get(0).equals(name))
+                            data.get(i).get(j).get(k).get(l).set(0,null);
                     }
                 }
             }
@@ -80,12 +105,12 @@ public class ScheduleSolution {
     public String[][][] getTeacherScheduleByName(String name){
         byte periodCount=ScheduleStructure.getInstance().getPeriodCount();
         String[][][] sch=new String[5][periodCount][];
-        for(int i=0;i<data.length;i++){
-            for(int j=0;j<data[i].length;j++){
+        for(int i=0;i<data.size();i++){
+            for(int j=0;j<data.get(i).size();j++){
                 for(int k=0;k<5;k++){
-                    for(int l=0;l<data[i][j][k].length;l++){
-                        if(data[i][j][k][l][0]!=null && data[i][j][k][l][0].equals(name))
-                            sch[k][l]= new String[]{String.valueOf(i + 1),String.valueOf(j + 1),data[i][j][k][l][1]};
+                    for(int l=0;l<data.get(i).get(j).get(k).size();l++){
+                        if(data.get(i).get(j).get(k).get(l).get(0)!=null && data.get(i).get(j).get(k).get(l).get(0).equals(name))
+                            sch[k][l]= new String[]{String.valueOf(i + 1),String.valueOf(j + 1),data.get(i).get(j).get(k).get(l).get(1)};
                     }
                 }
             }
@@ -94,12 +119,13 @@ public class ScheduleSolution {
     }
 
     public void removeSubjectByCode(String code){
-        for(int i=0;i<data.length;i++){
-            for(int j=0;j<data[i].length;j++){
+        for(int i=0;i<data.size();i++){
+            for(int j=0;j<data.get(i).size();j++){
                 for(int k=0;k<5;k++){
-                    for(int l=0;l<data[i][j][k].length;l++){
-                        if(data[i][j][k][l][1]!=null && data[i][j][k][l][1].equals(code)) {
-                            data[i][j][k][l]=new String[2];
+                    for(int l=0;l<data.get(i).get(j).get(k).size();l++){
+                        if(data.get(i).get(j).get(k).get(l).get(1)!=null && data.get(i).get(j).get(k).get(l).get(1).equals(code)) {
+                            data.get(i).get(j).get(k).get(l).set(1,null);
+                            data.get(i).get(j).get(k).get(l).set(0,null);
                         }
                     }
                 }
@@ -107,27 +133,20 @@ public class ScheduleSolution {
         }
     }
 
-    public String[][][][][] getData(){
+    public List<List<List<List<List<String>>>>> getData(){
         return data;
     }
 
-    public void setData(String[][][][][] data) {
-        this.data = data;
+    public List<List<List<String>>> getData(int semester, int section){
+        return this.data.get(semester-1).get(section-1);
     }
 
-    public String[][][] getData(int semester, int section){
-        return this.data[semester-1][section-1];
+    public void setData(int semester, int section, List<List<List<String>>> data){
+        this.data.get(semester-1).set(section-1,data);
     }
 
-    public void setData(int semester, int section,String[][][] data){
-        this.data[semester-1][section-1]=data;
+    public List<List<List<List<String>>>> getData(int semester){
+        return this.data.get(semester-1);
     }
 
-    public String[][][][] getData(int semester){
-        return this.data[semester-1];
-    }
-
-    public void setData(int semester, String[][][][] data){
-        this.data[semester-1]=data;
-    }
 }

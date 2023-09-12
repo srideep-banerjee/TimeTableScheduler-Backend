@@ -12,9 +12,9 @@ public class ScheduleStructure {
     public static ScheduleStructure getInstance(){
         if(instance==null){
             instance=new ScheduleStructure();
-            instance.sectionsPerSemester=new byte[]{0,0,1};
+            instance.sectionsPerSemester=new byte[]{0,0,1,0};
             instance.periodsPerSemester=9;
-            instance.breakPerSemester=new byte[][]{{5},{5},{5}};
+            instance.breakPerSemester=new byte[][]{{4,5},{5},{5},{5}};
         }
         return instance;
     }

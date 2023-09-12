@@ -298,15 +298,6 @@ public class ApiHandler implements HttpHandler {
                     }
                 }
             }
-            else if(requestMethod.equals("PUT")){
-                try {
-                    String[][][][][] data=objectMapper.readValue(exchange.getRequestBody(), String[][][][][].class);
-                    ScheduleSolution.getInstance().setData(data);
-                    sendTextResponse(exchange,200,"Request accepted");
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
-                }
-            }
             else if(requestMethod.equals("DELETE")){
                 try{
                     ScheduleSolution.getInstance().resetData();

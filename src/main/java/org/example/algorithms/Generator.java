@@ -55,7 +55,7 @@ public class Generator {
                     generation++;
                 }
                 System.out.println("Max Fitness Index = "+maxFitnessIndex);
-                if(generation>2000 && !stopped)onResultListener.onError("Couldn't find stable time table with given constraints");
+                if(generation>500 && !stopped)onResultListener.onError("Couldn't find stable time table with given constraints");
                 else{
                     Scanner sc=populationStorage.getChromosomeReader(maxFitnessIndex);
                     ScheduleSolution.getInstance().parseChromo(sc,subjectCodeArray,teacherNameArray);
