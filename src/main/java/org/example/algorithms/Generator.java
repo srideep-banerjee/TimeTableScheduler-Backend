@@ -474,7 +474,7 @@ public class Generator {
     private short getRandomExcluding(short upperBound,byte[] exclude, Random rand){
         short random=(short) rand.nextInt(upperBound-exclude.length);
         for (byte ex:exclude)
-            if(random<ex-1)random++;
+            if(ex-1<=random)random++;
         return random;
     }
 

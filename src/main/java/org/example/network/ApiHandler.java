@@ -23,7 +23,6 @@ public class ApiHandler implements HttpHandler {
     ApiActionHelper apiActionHelper;
     ObjectMapper objectMapper;
     Generator generator;
-    static int ii;
 
 
     public ApiHandler(HttpServer server) {
@@ -46,60 +45,57 @@ public class ApiHandler implements HttpHandler {
 
         }
         else if (path.equals("/io/teachers")) {
-            if (requestMethod.equals("GET")) {
-                if(TeacherDao.getInstance().isEmpty()){
-                    sendTextResponse(exchange,404,"No teachers found");
-                    return;
-                }
-                try {
-                    String response = objectMapper.writeValueAsString(TeacherDao.getInstance());
-                    sendJsonResponse(exchange, 200, response);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            else if (requestMethod.equals("PUT")) {
-                JsonNode arr;
-                try {
-                    arr = objectMapper.readTree(exchange.getRequestBody());
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
-                    return;
-                }
-                for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
-                    String name = it.next();
-                    if(Pattern.compile("[$&+,:;=\\\\?@#|/'<>.^*()%!-]").matcher(name).find()) {
-                        sendTextResponse(exchange, 400, "Name must not contain special character");
+            switch (requestMethod) {
+                case "GET" -> {
+                    if (TeacherDao.getInstance().isEmpty()) {
+                        sendTextResponse(exchange, 404, "No teachers found");
                         return;
                     }
-                    else if(name.length()==0) {
-                        sendTextResponse(exchange, 400, "Name can't be empty");
-                        return;
-                    }
-                    else if(name.length()>50) {
-                        sendTextResponse(exchange, 400, "Name can't be longer than 50 characters");
-                        return;
-                    }
-                    JsonNode teacherJson=arr.get(name);
                     try {
-                        Teacher teacher=objectMapper.reader().readValue(teacherJson,Teacher.class);
-                        TeacherDao.getInstance().put(name,teacher);
-                        sendTextResponse(exchange,200,"Teachers updated");
-                    } catch (IOException e) {
-                        sendTextResponse(exchange,400,"Invalid data format");
+                        String response = objectMapper.writeValueAsString(TeacherDao.getInstance());
+                        sendJsonResponse(exchange, 200, response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
                     }
                 }
+                case "PUT" -> {
+                    JsonNode arr;
+                    try {
+                        arr = objectMapper.readTree(exchange.getRequestBody());
+                    } catch (IOException e) {
+                        sendTextResponse(exchange, 400, "Invalid data format");
+                        return;
+                    }
+                    for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
+                        String name = it.next();
+                        if (Pattern.compile("[$&+,:;=\\\\?@#|/'<>.^*()%!-]").matcher(name).find()) {
+                            sendTextResponse(exchange, 400, "Name must not contain special character");
+                            return;
+                        } else if (name.length() == 0) {
+                            sendTextResponse(exchange, 400, "Name can't be empty");
+                            return;
+                        } else if (name.length() > 50) {
+                            sendTextResponse(exchange, 400, "Name can't be longer than 50 characters");
+                            return;
+                        }
+                        JsonNode teacherJson = arr.get(name);
+                        try {
+                            Teacher teacher = objectMapper.reader().readValue(teacherJson, Teacher.class);
+                            TeacherDao.getInstance().put(name, teacher);
+                            sendTextResponse(exchange, 200, "Teachers updated");
+                        } catch (IOException e) {
+                            sendTextResponse(exchange, 400, "Invalid data format");
+                        }
+                    }
+                }
+                case "DELETE" -> {
+                    generator.stop();
+                    ScheduleSolution.getInstance().removeAllTeachers();
+                    TeacherDao.getInstance().clear();
+                    sendTextResponse(exchange, 200, "Request accepted");
+                }
+                default -> sendInvalidOperationResponse(exchange);
             }
-
-            else if (requestMethod.equals("DELETE")) {
-                generator.stop();
-                ScheduleSolution.getInstance().removeAllTeachers();
-                TeacherDao.getInstance().clear();
-                sendTextResponse(exchange,200,"Request accepted");
-            }
-
-            else sendInvalidOperationResponse(exchange);
         }
         else if(path.equals("/io/teachers/names")){
             if(requestMethod.equals("GET")) {
@@ -116,98 +112,98 @@ public class ApiHandler implements HttpHandler {
         else if (path.startsWith("/io/teachers/") && (path.length()>"/io/teachers/".length())) {
             String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();
 
-            if(requestMethod.equals("GET")){
-                if(!TeacherDao.getInstance().containsKey(name)){
-                    sendTextResponse(exchange,404,"Teacher not found");
-                    return;
+            switch (requestMethod) {
+                case "GET" -> {
+                    if (!TeacherDao.getInstance().containsKey(name)) {
+                        sendTextResponse(exchange, 404, "Teacher not found");
+                        return;
+                    }
+                    try {
+                        String response = objectMapper.writeValueAsString(TeacherDao.getInstance().get(name));
+                        sendJsonResponse(exchange, 200, response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
                 }
-                try {
-                    String response=objectMapper.writeValueAsString(TeacherDao.getInstance().get(name));
-                    sendJsonResponse(exchange,200,response);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                case "PUT" -> {
+                    if (Pattern.compile("[$&+,:;=\\\\?@#|/'<>.^*()%!-]").matcher(name).find()) {
+                        sendTextResponse(exchange, 400, "name must not contain special character");
+                        return;
+                    } else if (name.length() == 0) {
+                        sendTextResponse(exchange, 400, "name can't be empty");
+                        return;
+                    } else if (name.length() > 50) {
+                        sendTextResponse(exchange, 400, "name can't be longer than 50 characters");
+                        return;
+                    }
+                    try {
+                        TeacherDao.getInstance().put(name, objectMapper.readValue(exchange.getRequestBody(), Teacher.class));
+                        sendTextResponse(exchange, 200, "Request accepted");
+                    } catch (IOException e) {
+                        sendTextResponse(exchange, 400, "Invalid data format");
+                    }
                 }
+                case "DELETE" -> {
+                    if (!TeacherDao.getInstance().containsKey(name)) {
+                        sendTextResponse(exchange, 404, "Teacher not found");
+                        return;
+                    }
+                    generator.stop();
+                    ScheduleSolution.getInstance().removeTeacherByName(name);
+                    TeacherDao.getInstance().remove(name);
+                    sendTextResponse(exchange, 200, "Request accepted");
+                }
+                default -> sendInvalidOperationResponse(exchange);
             }
-            else if(requestMethod.equals("PUT")){
-                if(Pattern.compile("[$&+,:;=\\\\?@#|/'<>.^*()%!-]").matcher(name).find()) {
-                    sendTextResponse(exchange, 400, "name must not contain special character");
-                    return;
-                }
-                else if(name.length()==0) {
-                    sendTextResponse(exchange, 400, "name can't be empty");
-                    return;
-                }
-                else if(name.length()>50) {
-                    sendTextResponse(exchange, 400, "name can't be longer than 50 characters");
-                    return;
-                }
-                try {
-                    TeacherDao.getInstance().put(name,objectMapper.readValue(exchange.getRequestBody(),Teacher.class));
-                    sendTextResponse(exchange,200,"Request accepted");
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
-                }
-            }
-            else if(requestMethod.equals("DELETE")){
-                if(!TeacherDao.getInstance().containsKey(name)){
-                    sendTextResponse(exchange,404,"Teacher not found");
-                    return;
-                }
-                generator.stop();
-                ScheduleSolution.getInstance().removeTeacherByName(name);
-                TeacherDao.getInstance().remove(name);
-                sendTextResponse(exchange,200,"Request accepted");
-            }
-            else sendInvalidOperationResponse(exchange);
         }
         else if(path.equals("/io/subjects")) {
-            if(requestMethod.equals("GET")){
-                if(SubjectDao.getInstance().isEmpty()){
-                    sendTextResponse(exchange,404,"No subjects found");
-                    return;
-                }
-                try {
-                    String response=objectMapper.writeValueAsString(SubjectDao.getInstance());
-                    sendJsonResponse(exchange,200,response);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            }
-            else if (requestMethod.equals("PUT")) {
-                JsonNode arr;
-                try {
-                    arr = objectMapper.readTree(exchange.getRequestBody());
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
-                    System.out.println(e);
-                    return;
-                }
-                for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
-                    String code = it.next();
-                    if(code.length()==0) {
-                        sendTextResponse(exchange, 400, "Subject code can't be empty");
+            switch (requestMethod) {
+                case "GET" -> {
+                    if (SubjectDao.getInstance().isEmpty()) {
+                        sendTextResponse(exchange, 404, "No subjects found");
                         return;
                     }
-                    else if(code.length()>20) {
-                        sendTextResponse(exchange, 400, "Subject code can't be longer than 20 characters");
-                        return;
-                    }
-                    JsonNode subJson=arr.get(code);
                     try {
-                        Subject subject = objectMapper.reader().readValue(subJson, Subject.class);
-                        SubjectDao.getInstance().put(code,subject);
-                        sendTextResponse(exchange,200,"Subjects updated");
-                    }catch(IOException e){
-                        sendTextResponse(exchange,400,"Invalid data format");
+                        String response = objectMapper.writeValueAsString(SubjectDao.getInstance());
+                        sendJsonResponse(exchange, 200, response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
                     }
                 }
+                case "PUT" -> {
+                    JsonNode arr;
+                    try {
+                        arr = objectMapper.readTree(exchange.getRequestBody());
+                    } catch (IOException e) {
+                        sendTextResponse(exchange, 400, "Invalid data format");
+                        return;
+                    }
+                    for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
+                        String code = it.next();
+                        if (code.length() == 0) {
+                            sendTextResponse(exchange, 400, "Subject code can't be empty");
+                            return;
+                        } else if (code.length() > 20) {
+                            sendTextResponse(exchange, 400, "Subject code can't be longer than 20 characters");
+                            return;
+                        }
+                        JsonNode subJson = arr.get(code);
+                        try {
+                            Subject subject = objectMapper.reader().readValue(subJson, Subject.class);
+                            SubjectDao.getInstance().put(code, subject);
+                            sendTextResponse(exchange, 200, "Subjects updated");
+                        } catch (IOException e) {
+                            sendTextResponse(exchange, 400, "Invalid data format");
+                        }
+                    }
+                }
+                case "DELETE" -> {
+                    generator.stop();
+                    ScheduleSolution.getInstance().resetData();
+                    sendTextResponse(exchange, 200, "Request accepted");
+                }
+                default -> sendInvalidOperationResponse(exchange);
             }
-            else if (requestMethod.equals("DELETE")) {
-                generator.stop();
-                ScheduleSolution.getInstance().resetData();
-                sendTextResponse(exchange,200,"Request accepted");
-            }
-            else sendInvalidOperationResponse(exchange);
         }
         else if(path.equals("/io/subjects/codes")){
             if(requestMethod.equals("GET")) {
@@ -224,45 +220,46 @@ public class ApiHandler implements HttpHandler {
         else if(path.startsWith("/io/subjects/") && (path.length()>"/io/subjects/".length())){
             String code=path.substring(path.lastIndexOf("/")+1).toUpperCase();
 
-            if(requestMethod.equals("GET")){
-                if(!SubjectDao.getInstance().containsKey(code)){
-                    sendTextResponse(exchange,404,"Subject not found");
-                    return;
+            switch (requestMethod) {
+                case "GET" -> {
+                    if (!SubjectDao.getInstance().containsKey(code)) {
+                        sendTextResponse(exchange, 404, "Subject not found");
+                        return;
+                    }
+                    try {
+                        String response = objectMapper.writeValueAsString(SubjectDao.getInstance().get(code));
+                        sendJsonResponse(exchange, 200, response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
                 }
-                try {
-                    String response=objectMapper.writeValueAsString(SubjectDao.getInstance().get(code));
-                    sendJsonResponse(exchange,200,response);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                case "PUT" -> {
+                    if (code.length() == 0) {
+                        sendTextResponse(exchange, 400, "Subject code can't be empty");
+                        return;
+                    } else if (code.length() > 20) {
+                        sendTextResponse(exchange, 400, "Subject code can't be longer than 20 characters");
+                        return;
+                    }
+                    try {
+                        SubjectDao.getInstance().put(code, objectMapper.readValue(exchange.getRequestBody(), Subject.class));
+                        sendTextResponse(exchange, 200, "Request accepted");
+                    } catch (IOException e) {
+                        sendTextResponse(exchange, 400, "Invalid data format");
+                    }
                 }
+                case "DELETE" -> {
+                    if (!SubjectDao.getInstance().containsKey(code)) {
+                        sendTextResponse(exchange, 404, "Subject not found");
+                        return;
+                    }
+                    generator.stop();
+                    ScheduleSolution.getInstance().removeSubjectByCode(code);
+                    SubjectDao.getInstance().remove(code);
+                    sendTextResponse(exchange, 200, "Request accepted");
+                }
+                default -> sendInvalidOperationResponse(exchange);
             }
-            else if(requestMethod.equals("PUT")){
-                if(code.length()==0) {
-                    sendTextResponse(exchange, 400, "Subject code can't be empty");
-                    return;
-                }
-                else if(code.length()>20) {
-                    sendTextResponse(exchange, 400, "Subject code can't be longer than 20 characters");
-                    return;
-                }
-                try {
-                    SubjectDao.getInstance().put(code,objectMapper.readValue(exchange.getRequestBody(), Subject.class));
-                    sendTextResponse(exchange,200,"Request accepted");
-                } catch (IOException e) {
-                    sendTextResponse(exchange,400,"Invalid data format");
-                }
-            }
-            else if(requestMethod.equals("DELETE")){
-                if(!SubjectDao.getInstance().containsKey(code)){
-                    sendTextResponse(exchange,404,"Subject not found");
-                    return;
-                }
-                generator.stop();
-                ScheduleSolution.getInstance().removeSubjectByCode(code);
-                SubjectDao.getInstance().remove(code);
-                sendTextResponse(exchange,200,"Request accepted");
-            }
-            else sendInvalidOperationResponse(exchange);
         }
         else if(path.equals("/io/schedule")){
             String query=exchange.getRequestURI().getQuery().toLowerCase();
