@@ -38,7 +38,7 @@ public class ApiHandler implements HttpHandler {
         apiActionHelper.performAction("heart beat received");
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
-        System.out.println(requestMethod+" "+path);
+        //System.out.println(requestMethod+" "+path);
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");
@@ -270,18 +270,19 @@ public class ApiHandler implements HttpHandler {
                     generator=new Generator(new OnResultListener() {
                         @Override
                         public void onResult() {
-
                             try {
                                 String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
                                 sendJsonResponse(exchange,200,response);
                             } catch (JsonProcessingException e) {
                                 e.printStackTrace();
                             }
+                            System.gc();
                         }
 
                         @Override
                         public void onError(String msg) {
                             sendTextResponse(exchange,500,msg);
+                            System.gc();
                         }
                     });
                     generator.generate();

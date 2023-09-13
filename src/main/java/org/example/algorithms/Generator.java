@@ -47,12 +47,14 @@ public class Generator {
             try{
                 updateVariables();
                 populate();
+                calculateFitness();
+                System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness+" Max fitness:"+maxFitness+" Index: "+maxFitnessIndex);
                 while(maxFitness!=1 && generation<=500){
-                    calculateFitness();
-                    System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness+" Max fitness:"+maxFitness+" Index: "+maxFitnessIndex);
                     selectParents();
                     generateNewPopulation();
+                    calculateFitness();
                     generation++;
+                    System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness+" Max fitness:"+maxFitness+" Index: "+maxFitnessIndex);
                 }
                 System.out.println("Max Fitness Index = "+maxFitnessIndex);
                 if(generation>500 && !stopped)onResultListener.onError("Couldn't find stable time table with given constraints");
@@ -265,68 +267,6 @@ public class Generator {
                 }
             }
         }
-
-        /*for(int i=0;i<this.totalLectureCount && !stopped;i++){
-            short i1=sc.nextShort();
-            short i2=sc.nextShort();
-            short i3=sc.nextShort();
-            short i4=sc.nextShort();
-            short day=(short)(i1/10+1);
-            short period=(short)(i1%10+1);
-            short semester=(short) subjectDao.get(subjectCodeArray[i4]).getSem();
-            short section=(short)(i2+1);
-            short teacherIndex= i3;
-            short subjectIndex=i4;
-            String teacher=teacherNameArray[i3];
-            String subject=subjectCodeArray[i4];
-
-            //evaluating h2
-            if(!teacherDao.get(teacher).getFreeTime().contains(new int[]{day,period}) && !teacherDao.get(teacher).getFreeTime().isEmpty())
-                count++;
-
-            //processing h3
-            String key=String.format("%s,%d",subject,section);
-            if(!h3.containsKey(key))h3.put(key,1);
-            else h3.put(key,h3.get(key)+1);
-
-            //evaluating h4
-            if(subjectDao.get(subject).isPractical()){
-                key=String.format("%d,%d,%s",day,period,subjectDao.get(subject).getRoomCode());
-                if(h4.contains(key))count++;
-                else h4.add(key);
-            }
-
-            //evaluating h5
-            else{
-                key=String.format("%d,%d",section,subjectIndex);
-                if(!h5.containsKey(key))h5.put(key, teacherIndex);
-                else if(h5.get(key)!=teacherIndex)count++;
-            }
-
-            //evaluating h6
-            key=String.format("%d,%d,%d,%d",day,period,semester,section);
-            if(h6.contains(key))count++;
-            else h6.add(key);
-
-            //evaluating h7
-            key=String.format("%d,%d,%d",teacherIndex,day,period);
-            if(h7.contains(key))count++;
-            else h7.add(key);
-
-            //processing h8 and h9
-            if(subjectDao.get(subject).isPractical()){
-                key=String.format("%d,%s",section,subject);
-                if(!h89.containsKey(key))
-                    h89.put(key,new ArrayList<>());
-                h89.get(key).add(new short[]{day,period,teacherIndex});
-            }
-
-            //processing h10
-            h10[teacherIndex]=true;
-
-            //evaluating h11
-            if(!teacherDao.get(teacher).getSubjects().contains(subject))count++;
-        }*/
 
         sc.close();
 
