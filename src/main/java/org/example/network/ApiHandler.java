@@ -38,7 +38,7 @@ public class ApiHandler implements HttpHandler {
         apiActionHelper.performAction("heart beat received");
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
-        //System.out.println(requestMethod+" "+path);
+        System.out.println(requestMethod+" "+path);
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");

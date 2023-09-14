@@ -57,18 +57,24 @@ public class ScheduleSolution {
 
             for (byte sec = 0; sec < secCount; sec++) {
                 String teacher = null;
+                short val=-1;
+                short value;
                 if (!practical) teacher = teachers[sc.nextShort()];
+                else val=sc.nextShort();
                 int lectureCount = subjectDao.get(subject).getLectureCount();
 
                 for (int j = 0; j < lectureCount; j++) {
-                    if (practical) teacher = teachers[sc.nextShort()];
-                    short value = sc.nextShort();
                     if (practical) {
+                        teacher = teachers[sc.nextShort()];
                         String key = String.format("%d,%d,%s", sem - 1, sec, subject);
+                        value= (short) (val+j);
                         if (!practicalPeriods.containsKey(key)) practicalPeriods.put(key, new ArrayList<>());
                         practicalPeriods.get(key).add(value);
                         if (!practicalTeachers.containsKey(key)) practicalTeachers.put(key, new HashSet<>());
                         practicalTeachers.get(key).add(teacher);
+                    }
+                    else {
+                        value = sc.nextShort();
                     }
                     data.get(sem - 1).get(sec).get(value / 10).set(value % 10, Arrays.asList(teacher, subject));
                 }

@@ -12,10 +12,11 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Generator {
-    private final int populationSize=200;
+    private final int populationSize=100;
     private final int tournamentSize=5;
     private final float crossoverRate=0.9f;
     private final float mutationRate=0.05f;
+    private  final int maxGenerationCount=120;
     private int chromoLength=0;
     private String[] subjectCodeArray=null;
     private String[] teacherNameArray=null;
@@ -37,7 +38,6 @@ public class Generator {
     public Generator(OnResultListener onResultListener){
         fitness=new float[populationSize];
         selectedIndices=new Integer[populationSize/tournamentSize];
-        System.out.println(selectedIndices.length+", "+populationSize*(1-crossoverRate));
         this.onResultListener=onResultListener;
     }
 
@@ -46,10 +46,12 @@ public class Generator {
         new Thread(()->{
             try{
                 updateVariables();
+                System.out.println(Arrays.toString(subjectCodeArray));
+                System.out.println(Arrays.toString(teacherNameArray));
                 populate();
                 calculateFitness();
                 System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness+" Max fitness:"+maxFitness+" Index: "+maxFitnessIndex);
-                while(maxFitness!=1 && generation<=500){
+                while(maxFitness!=1 && generation<=maxGenerationCount){
                     selectParents();
                     generateNewPopulation();
                     calculateFitness();
@@ -57,7 +59,7 @@ public class Generator {
                     System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness+" Max fitness:"+maxFitness+" Index: "+maxFitnessIndex);
                 }
                 System.out.println("Max Fitness Index = "+maxFitnessIndex);
-                if(generation>500 && !stopped)onResultListener.onError("Couldn't find stable time table with given constraints");
+                if(generation>maxGenerationCount && !stopped)onResultListener.onError("Couldn't find stable time table with given constraints");
                 else{
                     Scanner sc=populationStorage.getChromosomeReader(maxFitnessIndex);
                     ScheduleSolution.getInstance().parseChromo(sc,subjectCodeArray,teacherNameArray);
@@ -104,7 +106,7 @@ public class Generator {
             Subject s=subjectDao.get(subject);
             int secCount=scheduleData.getSectionCount(s.getSem());
             int lectureCount=s.getLectureCount();
-            chromoLength+=(s.isPractical()?lectureCount*2:lectureCount+1)*secCount;
+            chromoLength+=(lectureCount+1)*secCount;
         }
     }
 
@@ -127,38 +129,28 @@ public class Generator {
             byte sem=(byte)subjectDao.get(subjectCodeArray[i]).getSem();
             for(byte sec=1;sec<=scheduleData.getSectionCount(sem);sec++){
                 int lectureCount=subjectDao.get(subjectCodeArray[i]).getLectureCount();
-                if(!subjectDao.get(subjectCodeArray[i]).isPractical()){
+                boolean practical=subjectDao.get(subjectCodeArray[i]).isPractical();
+                if(practical){
+                    short period=getRandomExcludingTrailing(scheduleData.getPeriodCount(),scheduleData.getBreakLocations(sem), (short) lectureCount,random);
+                    ps.println((short) (random.nextInt(5) * 10 + period));
+                }
+                else{
                     short teacher=teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                     ps.println(teacher);
                 }
                 for(int k=0;k<lectureCount;k++){
-                    if(subjectDao.get(subjectCodeArray[i]).isPractical()){
+                    if(practical){
                         short teacher=teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                         ps.println(teacher);
                     }
-                    short period=getRandomExcluding(scheduleData.getPeriodCount(),scheduleData.getBreakLocations(sem),random);
-                    ps.println((short)(random.nextInt(5)*10+period));
+                    else {
+                        short period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), random);
+                        ps.println((short) (random.nextInt(5) * 10 + period));
+                    }
                 }
             }
         }
-        /*for(int i=0;i<this.totalLectureCount && !stopped;i++){
-            writeRandomGene(ps,random);
-        }*/
         ps.close();
-    }
-
-    public void writeRandomGene(PrintStream ps,Random random){
-        short i3=(short) random.nextInt(teacherNameArray.length);
-        String[] subjects=TeacherDao.getInstance().get(teacherNameArray[i3]).getSubjects().toArray(String[]::new);
-        short i4=indexOfSubject.get(subjects[random.nextInt(subjects.length)]);
-        short sem=(short) subjectDao.get(subjectCodeArray[i4]).getSem();
-        short i2=(short) random.nextInt(scheduleData.getSectionCount(sem));
-        short period=getRandomExcluding(scheduleData.getPeriodCount(),scheduleData.getBreakLocations(sem),random);
-        short i1=(short)(random.nextInt(5)*10+period);
-        ps.println(i1);
-        ps.println(i2);
-        ps.println(i3);
-        ps.println(i4);
     }
 
     private void calculateFitness()throws IOException{
@@ -199,24 +191,32 @@ public class Generator {
             Subject sub=subjectDao.get(subject);
             short semester=(short)sub.getSem();
             byte secCount=scheduleData.getSectionCount(semester);
+            int lectureCount=sub.getLectureCount();
 
             for(short section=1;section<=secCount;section++){
-                short teacherIndex=0;
+                short teacherIndex=-1;
+                short val=-1;
+                short value;
                 String teacher=null;
-                if(!sub.isPractical()){
+                if(sub.isPractical()){
+                    val=sc.nextShort();
+                }
+                else{
                     teacherIndex=sc.nextShort();
                     teacher=teacherNameArray[teacherIndex];
                 }
-                int lectureCount=sub.getLectureCount();
 
                 for(int j=0;j<lectureCount;j++){
                     if(sub.isPractical()){
                         teacherIndex=sc.nextShort();
                         teacher=teacherNameArray[teacherIndex];
+                        value= (short) (val+j);
                     }
-                    short value=sc.nextShort();
-                    short day=(short)(value/10+1);
+                    else{
+                        value=sc.nextShort();
+                    }
                     short period=(short)(value%10+1);
+                    short day=(short)(value/10+1);
 
                     //evaluating h2
                     if(!teacherDao.get(teacher).getFreeTime().contains(new int[]{day,period}) && !teacherDao.get(teacher).getFreeTime().isEmpty())
@@ -339,7 +339,7 @@ public class Generator {
         }
 
         Random random=new Random();
-        //add the crossed individuals from any two selected parents
+        //add the crossed individuals from any two selected parents with mutation
         for (;index<populationSize && !stopped;index++){
             //select two random indices to cross
             int ind1=selectedIndices[random.nextInt(selectedIndices.length)];
@@ -355,35 +355,51 @@ public class Generator {
                 for (byte sec=1;sec<=secCount;sec++){
                     short teacher1;
                     short teacher2;
-                    if(!practical){
+                    short val1;
+                    short val2;
+                    boolean mutate=Math.random()<=mutationRate;
+                    int lectureCount=sub.getLectureCount();
+                    if(practical){
+                        val1=sc1.nextShort();
+                        val2=sc2.nextShort();
+                        if(mutate){
+                            short period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), (short) lectureCount, random);
+                            ps.println((short) (random.nextInt(5) * 10 + period));
+                        }
+                        else {
+                            ps.println(random.nextBoolean()?val1:val2);
+                        }
+                    }
+                    else{
                         teacher1=sc1.nextShort();
                         teacher2=sc2.nextShort();
-                        if(Math.random()<=mutationRate){
+                        if(mutate){
                             short teacher=teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                             ps.println(teacher);
                         } else {
                             ps.println(random.nextBoolean()?teacher1:teacher2);
                         }
                     }
-                    int lectureCount=sub.getLectureCount();
+
                     for(int j=0;j<lectureCount;j++){
                         if(practical){
                             teacher1=sc1.nextShort();
                             teacher2=sc2.nextShort();
-                            if(Math.random()<=mutationRate){
+                            if(mutate){
                                 short teacher=teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                                 ps.println(teacher);
                             } else {
                                 ps.println(random.nextBoolean()?teacher1:teacher2);
                             }
-                        }
-                        short val1=sc1.nextShort();
-                        short val2=sc2.nextShort();
-                        if(Math.random()<=mutationRate){
-                            short period=getRandomExcluding(scheduleData.getPeriodCount(),scheduleData.getBreakLocations(sub.getSem()),random);
-                            ps.println((short)(random.nextInt(5)*10+period));
                         } else {
-                            ps.println(random.nextBoolean()?val1:val2);
+                            val1 = sc1.nextShort();
+                            val2 = sc2.nextShort();
+                            if (mutate) {
+                                short period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), random);
+                                ps.println((short) (random.nextInt(5) * 10 + period));
+                            } else {
+                                ps.println(random.nextBoolean() ? val1 : val2);
+                            }
                         }
                     }
                 }
@@ -416,6 +432,19 @@ public class Generator {
         for (byte ex:exclude)
             if(ex-1<=random)random++;
         return random;
+    }
+
+    public short getRandomExcludingTrailing(short upperBound,byte[] exclude, short trailingLength,Random rand){
+        ArrayList<Byte> available=new ArrayList<>();
+        byte excludeIndex=0;
+        for(byte i=0;i<=upperBound-trailingLength;i++){
+            if(excludeIndex<exclude.length && exclude[excludeIndex]-1<i+trailingLength){
+                i= (byte) (exclude[excludeIndex++]-1);
+                continue;
+            }
+            available.add(i);
+        }
+        return available.get(rand.nextInt(available.size()));
     }
 
     public void stop(){
