@@ -1,5 +1,6 @@
 package org.example.algorithms;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.interfaces.OnResultListener;
@@ -14,7 +15,7 @@ import java.util.*;
 public class Generator {
     private final int populationSize=100;
     private final int tournamentSize=5;
-    private final float crossoverRate=0.9f;
+    private final float crossoverRate=0.98f;
     private final float mutationRate=0.05f;
     private  final int maxGenerationCount=120;
     private int chromoLength=0;
@@ -46,8 +47,8 @@ public class Generator {
         new Thread(()->{
             try{
                 updateVariables();
-                System.out.println(Arrays.toString(subjectCodeArray));
-                System.out.println(Arrays.toString(teacherNameArray));
+                System.out.println(new ObjectMapper().writeValueAsString(subjectCodeArray));
+                System.out.println(new ObjectMapper().writeValueAsString(teacherNameArray));
                 populate();
                 calculateFitness();
                 System.out.println("Generation:"+generation+" Avg. fitness:"+averageFitness+" Max fitness:"+maxFitness+" Index: "+maxFitnessIndex);
@@ -236,7 +237,7 @@ public class Generator {
 
                     //evaluating h5
                     else{
-                        key=String.format("%d,%d",section,subjectIndex);
+                        key=String.format("%d,%s",section,subject);
                         if(!h5.containsKey(key))h5.put(key, teacherIndex);
                         else if(h5.get(key)!=teacherIndex)count++;
                     }
@@ -251,7 +252,7 @@ public class Generator {
                     if(h7.contains(key))count++;
                     else h7.add(key);
 
-                    //processing h8 and h9
+                    //processing h8, h9, h12 and h13
                     if(subjectDao.get(subject).isPractical()){
                         key=String.format("%d,%s",section,subject);
                         if(!h89.containsKey(key))
@@ -280,10 +281,13 @@ public class Generator {
             }
         }
 
-        //evaluating h8 and h9
+        //evaluating h8, h9, h12 and h13
         for(String key:h89.keySet()){
             List<short[]> slots=h89.get(key);
             HashSet<Short> teachers=new HashSet<>();
+            StringBuilder sb=new StringBuilder(key.substring(key.indexOf(",")+1));
+            sb.setCharAt(sb.length()-2,'0');
+            boolean hasTheory=SubjectDao.getInstance().containsKey(sb.toString());
 
             //finding count of slot with different days
             float sum=0;
@@ -293,17 +297,26 @@ public class Generator {
             for(short[] slot:slots)sum+=Math.abs(slot[0]-mean);
             count+=Math.round(sum);
 
+            //evaluating h8
             slots.sort(Comparator.comparingInt(a -> a[1]));
             for(byte i=1;i< slots.size();i++)
                 if(slots.get(i)[1]-1!=slots.get(i-1)[1])count++;
 
             for(short[] slot:slots)teachers.add(slot[2]);
+
+            //evaluating h12
+            if(hasTheory && !teachers.contains(h5.get(key.substring(0,key.indexOf(','))+","+sb)))count++;
+
+            //evaluating h9
             for(Short teacherIndex:teachers){
                 for(short[] slot:slots){
                     if(slot[2]==teacherIndex)continue;
                     if(h7.contains(String.format("%d,%d,%d",teacherIndex,slot[0],slot[1])))count++;
                 }
             }
+
+            //evaluating h13
+            count+=Math.abs(slots.size()-teachers.size());
         }
 
         //evaluating h10
@@ -404,23 +417,6 @@ public class Generator {
                     }
                 }
             }
-            /*for(int i=0;i<totalLectureCount;i++){
-                short s;
-                if(Math.random()>mutationRate) {
-                    boolean choice = random.nextBoolean();
-                    for (byte b = 0; b < 4; b++) {
-                        if (choice) {
-                            s = sc1.nextShort();
-                            sc2.nextShort();
-                        } else {
-                            s = sc2.nextShort();
-                            sc1.nextShort();
-                        }
-                        ps.println(s);
-                    }
-                }
-                else writeRandomGene(ps,random);
-            }*/
             sc1.close();
             sc2.close();
             ps.close();
@@ -444,7 +440,7 @@ public class Generator {
             }
             available.add(i);
         }
-        return available.get(rand.nextInt(available.size()));
+        return available.get(available.size()-1);
     }
 
     public void stop(){
