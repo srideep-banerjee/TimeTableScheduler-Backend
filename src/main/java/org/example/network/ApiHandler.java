@@ -262,8 +262,8 @@ public class ApiHandler implements HttpHandler {
             }
         }
         else if(path.equals("/io/schedule")){
-            String query=exchange.getRequestURI().getQuery().toLowerCase();
-            boolean generateNew=query.contains("generatenew=true");
+            String query=exchange.getRequestURI().getQuery();
+            boolean generateNew=query!=null && query.toLowerCase().contains("generatenew=true");
             if(requestMethod.equals("GET")){
                 if(generateNew){
                     generator.stop();

@@ -1,18 +1,13 @@
 package org.example;
 
-import org.example.algorithms.Generator;
-import org.example.algorithms.PopulationStorage;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
-import org.example.interfaces.OnResultListener;
 import org.example.network.ApiActionHelper;
 import org.example.network.LocalServer;
-import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
 import java.awt.Desktop;
-import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.*;
 
@@ -58,17 +53,17 @@ public class Main {
 
         Subject s=new Subject(5,4,false,"LH123");
         SubjectDao.getInstance().put("ESC501",s);
-        s=new Subject(5,3,true,"LH123");
+        s=new Subject(5,3,true,"LAB-3,4");
         SubjectDao.getInstance().put("ESC591",s);
         s=new Subject(5,4,false,"LH123");
         SubjectDao.getInstance().put("PCC-CS502",s);
-        s=new Subject(5,3,true,"LH123");
+        s=new Subject(5,3,true,"LAB-13,14");
         SubjectDao.getInstance().put("PCC-CS592",s);
         s=new Subject(5,3,false,"LH123");
         SubjectDao.getInstance().put("PCC-CS501",s);
         s=new Subject(5,3,false,"LH123");
         SubjectDao.getInstance().put("PCC-CS503",s);
-        s=new Subject(5,3,true,"LH123");
+        s=new Subject(5,3,true,"LAB-13,14");
         SubjectDao.getInstance().put("PCC-CS593",s);
         s=new Subject(5,4,false,"LH123");
         SubjectDao.getInstance().put("PEC-ITB",s);
