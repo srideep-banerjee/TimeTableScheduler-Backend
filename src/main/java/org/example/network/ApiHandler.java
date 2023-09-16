@@ -309,7 +309,7 @@ public class ApiHandler implements HttpHandler {
         else if(path.startsWith("/io/schedule/teacher/") && path.length()>21){
             String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();
             if(requestMethod.equals("GET")){
-                if(TeacherDao.getInstance().containsKey(name)){
+                if(!TeacherDao.getInstance().containsKey(name)){
                     sendTextResponse(exchange,404,"Teacher not found");
                     return;
                 }
