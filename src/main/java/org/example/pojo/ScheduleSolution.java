@@ -129,8 +129,10 @@ public class ScheduleSolution {
             for (int j = 0; j < data.get(i).size(); j++) {
                 for (int k = 0; k < 5; k++) {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
-                        if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name))
-                            sch[k][l] = new String[]{String.valueOf(i + 1), String.valueOf(j + 1), data.get(i).get(j).get(k).get(l).get(1)};
+                        if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name)) {
+                            String subject=data.get(i).get(j).get(k).get(l).get(1);
+                            sch[k][l] = new String[]{String.valueOf(SubjectDao.getInstance().get(subject).getSem()), String.valueOf(j), subject};
+                        }
                     }
                 }
             }
