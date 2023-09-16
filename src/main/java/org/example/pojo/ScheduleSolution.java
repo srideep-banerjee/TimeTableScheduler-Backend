@@ -10,6 +10,8 @@ public class ScheduleSolution {
     private List<List<List<List<List<String>>>>> data;
     private static ScheduleSolution instance = null;
 
+    private boolean empty=true;
+
     private ScheduleSolution() {
         this.resetData();
     }
@@ -20,6 +22,7 @@ public class ScheduleSolution {
     }
 
     public void resetData() {
+        empty=true;
         ScheduleStructure ss = ScheduleStructure.getInstance();
         data = new ArrayList<>();
         byte periodCount = ss.getPeriodCount();
@@ -79,6 +82,7 @@ public class ScheduleSolution {
                     data.get(sem - 1).get(sec).get(value / 10).set(value % 10, Arrays.asList(teacher, subject));
                 }
             }
+            empty=false;
         }
         for (String key : practicalPeriods.keySet()) {
             String[] keyData = key.split(",");
@@ -171,4 +175,7 @@ public class ScheduleSolution {
         return this.data.get(semester - 1);
     }
 
+    public boolean isEmpty(){
+        return empty;
+    }
 }

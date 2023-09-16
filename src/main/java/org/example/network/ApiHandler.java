@@ -288,9 +288,13 @@ public class ApiHandler implements HttpHandler {
                     generator.generate();
                 }
                 else{
+                    if(ScheduleSolution.getInstance().isEmpty()){
+                        sendTextResponse(exchange,404,"Schedule is empty");
+                        return;
+                    }
                     try {
                         String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
-                        sendTextResponse(exchange,200,response);
+                        sendJsonResponse(exchange,200,response);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
@@ -311,6 +315,10 @@ public class ApiHandler implements HttpHandler {
             if(requestMethod.equals("GET")){
                 if(!TeacherDao.getInstance().containsKey(name)){
                     sendTextResponse(exchange,404,"Teacher not found");
+                    return;
+                }
+                if(ScheduleSolution.getInstance().isEmpty()){
+                    sendTextResponse(exchange,404,"Schedule is empty");
                     return;
                 }
                 try {
