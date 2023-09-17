@@ -340,6 +340,15 @@ public class ApiHandler implements HttpHandler {
                     e.printStackTrace();
                 }
             }
+            else if(requestMethod.equals("PUT")){
+                try{
+                    objectMapper.readerForUpdating(ScheduleStructure.getInstance()).readValue(exchange.getRequestBody());
+                    sendTextResponse(exchange,200,"Request accepted");
+                }catch (IOException e){
+                    sendTextResponse(exchange,400,"Invalid data format");
+                }
+            }
+            else sendInvalidOperationResponse(exchange);
         }
         else
             // Handle other HTTP methods or unsupported paths
