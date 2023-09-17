@@ -187,6 +187,7 @@ public class Generator {
 
         Scanner sc=populationStorage.getChromosomeReader(index);
 
+        OuterLoop:
         for(short subjectIndex=0;subjectIndex<subjectCodeArray.length;subjectIndex++){
             String subject=subjectCodeArray[subjectIndex];
             Subject sub=subjectDao.get(subject);
@@ -208,6 +209,7 @@ public class Generator {
                 }
 
                 for(int j=0;j<lectureCount;j++){
+                    if(stopped)break OuterLoop;
                     if(sub.isPractical()){
                         teacherIndex=sc.nextShort();
                         teacher=teacherNameArray[teacherIndex];
@@ -273,6 +275,7 @@ public class Generator {
 
         //evaluating h3
         for(String subject:subjectCodeArray){
+            if(stopped) break;
             for(int i = 1; i<= scheduleData.getSectionCount(subjectDao.get(subject).getSem()); i++){
                 if(!h3.containsKey(String.format("%s,%d",subject,i)))
                     count+=subjectDao.get(subject).getLectureCount();
@@ -283,6 +286,7 @@ public class Generator {
 
         //evaluating h8, h9, h12 and h13
         for(String key:h89.keySet()){
+            if(stopped) break;
             List<short[]> slots=h89.get(key);
             HashSet<Short> teachers=new HashSet<>();
             StringBuilder sb=new StringBuilder(key.substring(key.indexOf(",")+1));
@@ -360,12 +364,12 @@ public class Generator {
             Scanner sc1=prevPopulationStorage.getChromosomeReader(ind1);
             Scanner sc2=prevPopulationStorage.getChromosomeReader(ind2);
             PrintStream ps=populationStorage.getChromosomeWriter(index);
-            for(int i=0;i<subjectCodeArray.length;i++){
+            for(int i=0;i<subjectCodeArray.length  && !stopped;i++){
                 Subject sub=subjectDao.get(subjectCodeArray[i]);
                 byte secCount = scheduleData.getSectionCount(sub.getSem());
                 boolean practical=sub.isPractical();
 
-                for (byte sec=1;sec<=secCount;sec++){
+                for (byte sec=1;sec<=secCount && !stopped;sec++){
                     short teacher1;
                     short teacher2;
                     short val1;
@@ -394,7 +398,7 @@ public class Generator {
                         }
                     }
 
-                    for(int j=0;j<lectureCount;j++){
+                    for(int j=0;j<lectureCount && !stopped;j++){
                         if(practical){
                             teacher1=sc1.nextShort();
                             teacher2=sc2.nextShort();
