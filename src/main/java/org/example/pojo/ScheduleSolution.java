@@ -25,14 +25,13 @@ public class ScheduleSolution {
         empty=true;
         ScheduleStructure ss = ScheduleStructure.getInstance();
         data = new ArrayList<>();
-        byte periodCount = ss.getPeriodCount();
         for (int i = 0; i < ss.getSemesterCount(); i++) {
             List<List<List<List<String>>>> dataSection = new ArrayList<>();
             for (int j = 0; j < ss.getSectionCount(i * 2 + 1); j++) {
                 List<List<List<String>>> dataDay = new ArrayList<>();
                 for (int k = 0; k < 5; k++) {
                     List<List<String>> dataPeriod = new ArrayList<>();
-                    for (int l = 0; l < periodCount; l++) {
+                    for (int l = 0; l < ss.getPeriodCount(); l++) {
                         List<String> dataSlot = new ArrayList<>();
                         dataSlot.add(null);
                         dataSlot.add(null);
@@ -43,6 +42,21 @@ public class ScheduleSolution {
                 dataSection.add(dataDay);
             }
             data.add(dataSection);
+        }
+    }
+
+    public void updateStructure(){
+        ScheduleStructure ss = ScheduleStructure.getInstance();
+        List<List<List<List<List<String>>>>> previousData=data;
+        resetData();
+        for(int i = 0; i < ss.getSemesterCount() && i < previousData.size(); i++){
+            for(int j=0;j< ss.getSectionCount(i * 2 + 1) && j<previousData.get(i).size(); j++){
+                for(int k = 0; k < 5; k++){
+                    for(int l = 0; l < ss.getPeriodCount() && l <previousData.get(i).get(j).get(k).size(); l++){
+                        data.get(i).get(j).get(k).set(l,previousData.get(i).get(j).get(k).get(l));
+                    }
+                }
+            }
         }
     }
 
