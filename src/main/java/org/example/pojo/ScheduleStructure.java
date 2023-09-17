@@ -9,6 +9,8 @@ import org.example.dao.json.Byte1DArraySerializer;
 import org.example.dao.json.Byte2DArraySerializer;
 import org.example.dao.SubjectDao;
 
+import java.io.IOException;
+
 @JsonPropertyOrder({"semesterCount","sectionsPerSemester","periodCount","breaksPerSemester"})
 public class ScheduleStructure {
     @JsonProperty("sectionsPerSemester")
@@ -69,15 +71,16 @@ public class ScheduleStructure {
 
 
     public void setSectionsPerSemester(byte[] sectionsPerSemester){
-        if(sectionsPerSemester.length==semesterCount)
-            this.sectionsPerSemester=sectionsPerSemester;
+        if(sectionsPerSemester.length!=semesterCount)
+            throw new RuntimeException("Invalid data format");
+        this.sectionsPerSemester=sectionsPerSemester;
     }
 
     public void setBreaksPerSemester(byte[][] breaksPerSemester) {
         if(breaksPerSemester.length!=semesterCount)return;
         for(byte[] breaks :breaksPerSemester){
             for(byte br:breaks)
-                if(br>periodCount)return;
+                if(br>periodCount)throw new RuntimeException("Invalid data format");
         }
         this.breaksPerSemester = breaksPerSemester;
     }
