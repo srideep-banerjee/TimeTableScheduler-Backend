@@ -1,10 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
+
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title></title>
 </head>
+<style>
+        body {
+            margin: 0;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            min-height: 100vh;
+            width: 100%;
+            user-select: none;
+        }
+        .container{
+            width: 100%;
+            height: 100%;
+            font-size: 26px;
+            display: grid;
+            align-items: center;
+            justify-content: center;
+            justify-items: center;
+            background: rgba(235, 235, 235, 0.8);
+        }
+        .text{
+            text-align: center;
+        }
+        a{
+            font-size: 12px;
+        }
+    </style>
 <body>
-    404 Page not found
+<div class="container">
+    <div class="text">
+        404 Page Not Found<br><br>
+        <a href="">Click Here to Return on Home page</a>
+    </div>
+</div>
 </body>
+<script>
+        window.onload = ()=>{
+            let url = window.location.origin+"/";
+            document.querySelector("a").href = url+"Dashboard.html";
+        }
+    </script>
 </html>
