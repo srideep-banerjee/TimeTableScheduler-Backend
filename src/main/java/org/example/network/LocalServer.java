@@ -30,7 +30,7 @@ public class LocalServer {
         addFileContexts(server);
 
         //create default context
-        server.createContext("/", exchange -> servePageNotFoundHtml(exchange));
+        server.createContext("/", this::servePageNotFoundHtml);
 
         //start server
         server.start();
@@ -45,10 +45,11 @@ public class LocalServer {
     public void addFileContexts(HttpServer server) {
         for (String path : FileIterator.getPathList()) {
             server.createContext(path, exchange -> {
-                if(!new File("web/" +path).exists()){
+                if(!path.equals(exchange.getRequestURI().getPath())){
                     servePageNotFoundHtml(exchange);
                     return;
                 }
+                System.out.println("File: "+path);
                 try {
                     FileInputStream fis = new FileInputStream("web/" + path);
                     byte[] bytes = fis.readAllBytes();
@@ -74,6 +75,7 @@ public class LocalServer {
     }
 
     public void servePageNotFoundHtml(HttpExchange exchange){
+        System.out.println("404 called for "+exchange.getRequestURI().getPath());
         try {
             InputStream is=this.getClass().getClassLoader().getResourceAsStream("NotFound.html");
             byte[] bytes=is.readAllBytes();
