@@ -73,7 +73,7 @@ public class Main {
         SubjectDao.getInstance().put("HSMC-501",s);
 
         try {
-            Desktop.getDesktop().browse(new URI("http://localhost:"+ls.getPort()+"/"));
+            Desktop.getDesktop().browse(new URI(ls.getDefaultURL()));
         } catch (Exception e) {
             System.out.println(e);
         }
