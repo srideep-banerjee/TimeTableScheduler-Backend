@@ -11,6 +11,7 @@ import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.interfaces.OnResultListener;
 import org.example.pojo.ScheduleSolution;
+import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
@@ -332,7 +333,12 @@ public class ApiHandler implements HttpHandler {
         }
         else if (path.startsWith("/io/schedule/structure")){
             if(requestMethod.equals("GET")){
-                
+                try{
+                    String response=objectMapper.writeValueAsString(ScheduleStructure.getInstance());
+                    sendJsonResponse(exchange,200,response);
+                }catch(JsonProcessingException e){
+                    e.printStackTrace();
+                }
             }
         }
         else

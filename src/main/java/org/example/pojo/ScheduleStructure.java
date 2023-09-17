@@ -1,36 +1,66 @@
 package org.example.pojo;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.example.dao.json.Byte1DArraySerializer;
+import org.example.dao.json.Byte2DArraySerializer;
 import org.example.dao.SubjectDao;
 
+@JsonPropertyOrder({"semesterCount","sectionsPerSemester","periodCount","breaksPerSemester"})
 public class ScheduleStructure {
+    @JsonProperty("sectionsPerSemester")
     private byte[] sectionsPerSemester;
-    private byte periodsPerSemester;
-    private byte[][] breakPerSemester;//if breakPerSemester[0]=3, semester 1 has break between 3rd and 4th periods
-    private byte semesterCount=4;
+    @JsonProperty("periodCount")
+    private byte periodCount;
+    @JsonProperty("breaksPerSemester")
+    private byte[][] breaksPerSemester;//if breakPerSemester[0]=3, semester 1 has break between 3rd and 4th periods
+    @JsonProperty("semesterCount")
+    private byte semesterCount;
+    @JsonIgnore
     private static ScheduleStructure instance;
+    @JsonIgnore
     private ScheduleStructure(){}
+    @JsonIgnore
     public static ScheduleStructure getInstance(){
         if(instance==null){
             instance=new ScheduleStructure();
+            instance.semesterCount=4;
             instance.sectionsPerSemester=new byte[]{0,0,1,0};
-            instance.periodsPerSemester=9;
-            instance.breakPerSemester=new byte[][]{{4,5},{5},{5},{5}};
+            instance.periodCount=9;
+            instance.breaksPerSemester=new byte[][]{{4,5},{5},{5},{5}};
         }
         return instance;
     }
 
+    @JsonIgnore
     public byte getSectionCount(int semester){
         semester=semester%2==0?semester/2:(semester+1)/2;
         return this.sectionsPerSemester[semester-1];
     }
 
+    @JsonSerialize(using = Byte1DArraySerializer.class)
+    @JsonGetter("sectionsPerSemester")
+    public byte[] getSectionsPerSemester(){
+        return sectionsPerSemester;
+    }
+
+    @JsonIgnore
     public byte[] getBreakLocations(int semester){
         semester=semester%2==0?semester/2:(semester+1)/2;
-        return this.breakPerSemester[semester-1];
+        return this.breaksPerSemester[semester-1];
+    }
+
+    @JsonSerialize(using = Byte2DArraySerializer.class)
+    @JsonGetter("breaksPerSemester")
+    public byte[][] gerBreaksPerSemester(){
+        return breaksPerSemester;
     }
 
     public byte getPeriodCount(){
-        return this.periodsPerSemester;
+        return this.periodCount;
     }
 
     public byte getSemesterCount(){
@@ -39,23 +69,24 @@ public class ScheduleStructure {
 
 
     public void setSectionsPerSemester(byte[] sectionsPerSemester){
-        this.sectionsPerSemester=sectionsPerSemester;
+        if(sectionsPerSemester.length==semesterCount)
+            this.sectionsPerSemester=sectionsPerSemester;
     }
 
-    public void setBreakPerSemester(byte[][] breakPerSemester) {
-        this.breakPerSemester = breakPerSemester;
+    public void setBreaksPerSemester(byte[][] breaksPerSemester) {
+        if(breaksPerSemester.length!=semesterCount)return;
+        for(byte[] breaks :breaksPerSemester){
+            for(byte br:breaks)
+                if(br>periodCount)return;
+        }
+        this.breaksPerSemester = breaksPerSemester;
     }
 
-    public void setPeriodsPerSemester(byte periodsPerSemester){
-        this.periodsPerSemester=periodsPerSemester;
+    public void setPeriodCount(byte periodCount){
+        this.periodCount=periodCount;
     }
 
-    public int getTotalLectureCount(){
-        int count=0;
-        for(Subject subject:SubjectDao.getInstance().values())
-            count+=subject.getLectureCount()*getSectionCount(subject.getSem());
-        return count;
+    public void setSemesterCount(byte semesterCount){
+        this.semesterCount=semesterCount;
     }
-
-
 }
