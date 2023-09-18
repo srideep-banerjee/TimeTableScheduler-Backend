@@ -7,9 +7,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.example.dao.json.Byte1DArraySerializer;
 import org.example.dao.json.Byte2DArraySerializer;
-import org.example.dao.SubjectDao;
-
-import java.io.IOException;
 
 @JsonPropertyOrder({"semesterCount","sectionsPerSemester","periodCount","breaksPerSemester"})
 public class ScheduleStructure {
