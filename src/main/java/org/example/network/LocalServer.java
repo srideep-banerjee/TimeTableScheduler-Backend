@@ -2,6 +2,7 @@ package org.example.network;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.example.files.FileIterator;
 
 import java.io.*;
 import java.net.InetSocketAddress;
