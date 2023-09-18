@@ -177,6 +177,11 @@ public class ScheduleSolution {
         return data;
     }
 
+    public void setData(List<List<List<List<List<String>>>>> data){
+        empty=false;
+        this.data=data;
+    }
+
     public List<List<List<String>>> getData(int semester, int section) {
         semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
         try{
@@ -212,5 +217,9 @@ public class ScheduleSolution {
 
     public boolean isEmpty(){
         return empty;
+    }
+
+    public void setEmpty(boolean empty){
+        this.empty=empty;
     }
 }

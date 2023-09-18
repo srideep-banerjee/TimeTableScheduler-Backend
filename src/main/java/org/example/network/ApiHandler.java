@@ -10,6 +10,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.example.algorithms.Generator;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
+import org.example.files.SavesHandler;
 import org.example.interfaces.OnResultListener;
 import org.example.pojo.ScheduleSolution;
 import org.example.pojo.ScheduleStructure;
@@ -42,7 +43,7 @@ public class ApiHandler implements HttpHandler {
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
         String querys=exchange.getRequestURI().getQuery();
-        System.out.println(requestMethod+" "+path+(querys!=null?querys:""));
+        System.out.println(requestMethod+" "+path+(querys!=null?"?"+querys:""));
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");
@@ -399,6 +400,37 @@ public class ApiHandler implements HttpHandler {
                 }
             }
             else sendInvalidOperationResponse(exchange);
+        }
+        else if (path.equals("/io/saves/load")){
+            if(querys==null){
+                sendTextResponse(exchange, 400, "No name provided to load");
+                return;
+            }
+            String res=SavesHandler.load(querys.substring(5).toUpperCase());
+            if(res==null)sendTextResponse(exchange,200,"Request accepted");
+            else sendTextResponse(exchange,400,res);
+        }
+        else if (path.equals("/io/saves/save")){
+            if(querys==null){
+                sendTextResponse(exchange, 400, "No name provided to load");
+                return;
+            }
+            String res=SavesHandler.save(querys.substring(5).toUpperCase());
+            if(res==null)sendTextResponse(exchange,200,"Request accepted");
+            else sendTextResponse(exchange,400,res);
+        }
+        else if (path.equals("/io/saves/currentName")){
+            String res=SavesHandler.getCurrentSave();
+            if(res==null)sendTextResponse(exchange,400,"null");
+            else sendTextResponse(exchange,200,res);
+        }
+        else if (path.equals("/io/saves/list")){
+            try {
+                String response=objectMapper.writeValueAsString(SavesHandler.getSaveList());
+                sendJsonResponse(exchange,200,response);
+            }catch (JsonProcessingException e){
+                e.printStackTrace();
+            }
         }
         else
             // Handle other HTTP methods or unsupported paths
