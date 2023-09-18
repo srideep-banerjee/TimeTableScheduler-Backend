@@ -1,6 +1,7 @@
 package org.example.network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
@@ -17,6 +18,7 @@ import org.example.pojo.Teacher;
 
 import java.io.*;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class ApiHandler implements HttpHandler {
@@ -39,7 +41,8 @@ public class ApiHandler implements HttpHandler {
         apiActionHelper.performAction("heart beat received");
         String path=exchange.getRequestURI().getPath();
         String requestMethod= exchange.getRequestMethod();
-        System.out.println(requestMethod+" "+path);
+        String querys=exchange.getRequestURI().getQuery();
+        System.out.println(requestMethod+" "+path+(querys!=null?querys:""));
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");
@@ -208,7 +211,7 @@ public class ApiHandler implements HttpHandler {
         }
         else if(path.equals("/io/subjects/codes")){
             if(requestMethod.equals("GET")) {
-                String response= null;
+                String response;
                 try {
                     response = new ObjectMapper().writeValueAsString(SubjectDao.getInstance().keySet());
                     sendJsonResponse(exchange,200,response);
@@ -263,53 +266,108 @@ public class ApiHandler implements HttpHandler {
             }
         }
         else if(path.equals("/io/schedule")){
-            String query=exchange.getRequestURI().getQuery();
-            boolean generateNew=query!=null && query.toLowerCase().contains("generatenew=true");
-            if(requestMethod.equals("GET")){
-                if(generateNew){
-                    generator.stop();
-                    generator=new Generator(new OnResultListener() {
-                        @Override
-                        public void onResult() {
-                            try {
-                                String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
-                                sendJsonResponse(exchange,200,response);
-                            } catch (JsonProcessingException e) {
-                                e.printStackTrace();
+            boolean generateNew=false;
+            int sem=-1;
+            int sec=-1;
+            if(querys!=null){
+                querys=querys.toLowerCase();
+                for(String query:querys.split("&")){
+                    String[] entry=query.split("=");
+                    try{
+                        switch (entry[0]){
+                            case "generatenew" -> generateNew=entry[1].equals("true");
+                            case "sem" -> sem=Integer.parseInt(entry[1]);
+                            case "sec" -> sec=Integer.parseInt(entry[1]);
+                            default -> {
+                                sendTextResponse(exchange,400,"Invalid query parameters");
+                                return;
                             }
-                            System.gc();
                         }
-
-                        @Override
-                        public void onError(String msg) {
-                            sendTextResponse(exchange,500,msg);
-                            System.gc();
-                        }
-                    });
-                    generator.generate();
-                }
-                else{
-                    if(ScheduleSolution.getInstance().isEmpty()){
-                        sendTextResponse(exchange,404,"Schedule is empty");
-                        return;
-                    }
-                    try {
-                        String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
-                        sendJsonResponse(exchange,200,response);
-                    } catch (JsonProcessingException e) {
+                    }catch (NumberFormatException e){
                         e.printStackTrace();
                     }
                 }
             }
-            else if(requestMethod.equals("DELETE")){
-                try{
-                    ScheduleSolution.getInstance().resetData();
-                    sendTextResponse(exchange,200,"Request accepted");
-                }catch(RuntimeException e){
-                    sendTextResponse(exchange,500,"Failed to delete schedule data");
+            switch (requestMethod) {
+                case "GET" -> {
+                    if (generateNew) {
+                        generator.stop();
+                        generator = new Generator(new OnResultListener() {
+                            @Override
+                            public void onResult() {
+                                try {
+                                    String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
+                                    sendJsonResponse(exchange, 200, response);
+                                } catch (JsonProcessingException e) {
+                                    e.printStackTrace();
+                                }
+                                System.gc();
+                            }
+
+                            @Override
+                            public void onError(String msg) {
+                                sendTextResponse(exchange, 500, msg);
+                                System.gc();
+                            }
+                        });
+                        generator.generate();
+                    } else {
+                        if (ScheduleSolution.getInstance().isEmpty()) {
+                            sendTextResponse(exchange, 404, "Schedule is empty");
+                            return;
+                        }
+                        if (sem != -1 && sec != -1) {
+                            String response = "null";
+                            try {
+                                response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData(sem, sec));
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                            if (response.equals("null")) sendTextResponse(exchange, 400, "Semester or section invalid");
+                            else sendJsonResponse(exchange, 200, response);
+                        } else if (sem != -1) {
+                            String response = "null";
+                            try {
+                                response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData(sem));
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                            if (response.equals("null")) sendTextResponse(exchange, 400, "Semester or section invalid");
+                            else sendJsonResponse(exchange, 200, response);
+                        }
+                        else{
+                            try {
+                                String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
+                                sendJsonResponse(exchange, 200, response);
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 }
+                case "PUT" -> {
+                    try {
+                        List<List<List<String>>> data = objectMapper.readValue(exchange.getRequestBody(), new TypeReference<>() {
+                        });
+                        if (!ScheduleSolution.getInstance().setData(sem, sec, data)) {
+                            sendTextResponse(exchange, 400, "Invalid data format");
+                            return;
+                        }
+                        sendTextResponse(exchange, 200, "Request accepted");
+                    } catch (Exception e) {
+                        sendTextResponse(exchange, 400, "Invalid data format");
+                    }
+                }
+                case "DELETE" -> {
+                    try {
+                        ScheduleSolution.getInstance().resetData();
+                        sendTextResponse(exchange, 200, "Request accepted");
+                    } catch (RuntimeException e) {
+                        sendTextResponse(exchange, 500, "Failed to delete schedule data");
+                    }
+                }
+                default -> sendInvalidOperationResponse(exchange);
             }
-            else sendInvalidOperationResponse(exchange);
         }
         else if(path.startsWith("/io/schedule/teacher/") && path.length()>21){
             String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();

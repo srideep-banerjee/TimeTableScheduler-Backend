@@ -178,15 +178,36 @@ public class ScheduleSolution {
     }
 
     public List<List<List<String>>> getData(int semester, int section) {
-        return this.data.get(semester - 1).get(section - 1);
+        semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
+        try{
+            return this.data.get(semester - 1).get(section - 1);
+        }catch (RuntimeException e){
+            return null;
+        }
     }
 
-    public void setData(int semester, int section, List<List<List<String>>> data) {
+    public boolean setData(int semester, int section, List<List<List<String>>> data) {
+        if(section>ScheduleStructure.getInstance().getSectionCount(semester))return false;
+        semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
+        if(semester>ScheduleStructure.getInstance().getSemesterCount())return false;
+        if(data.size()!=5) return  false;
+        for(int i=0;i<5;i++){
+            if(data.get(i).size()!=ScheduleStructure.getInstance().getPeriodCount())return false;
+            for(int j=0;j<ScheduleStructure.getInstance().getPeriodCount();j++){
+                if(data.get(i).get(j).size()!=2)return false;
+            }
+        }
         this.data.get(semester - 1).set(section - 1, data);
+        return true;
     }
 
     public List<List<List<List<String>>>> getData(int semester) {
-        return this.data.get(semester - 1);
+        semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
+        try{
+            return this.data.get(semester - 1);
+        }catch(Exception e){
+            return null;
+        }
     }
 
     public boolean isEmpty(){
