@@ -358,14 +358,6 @@ public class ApiHandler implements HttpHandler {
                         sendTextResponse(exchange, 400, "Invalid data format");
                     }
                 }
-                case "DELETE" -> {
-                    try {
-                        ScheduleSolution.getInstance().resetData();
-                        sendTextResponse(exchange, 200, "Request accepted");
-                    } catch (RuntimeException e) {
-                        sendTextResponse(exchange, 500, "Failed to delete schedule data");
-                    }
-                }
                 default -> sendInvalidOperationResponse(exchange);
             }
         }
