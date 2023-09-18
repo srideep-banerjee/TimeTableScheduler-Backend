@@ -6,7 +6,12 @@ build/
 
 ### Web Files ###
 /web/
+
+### Genetic Files ###
 /Genetic/
+
+### Save files ###
+/Saves/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
