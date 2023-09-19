@@ -119,11 +119,12 @@ public class SavesHandler {
     }
 
     public static String[] getSaveList() {
+        System.out.println("List called");
         File savesDir = new File("Saves");
         if (!savesDir.exists()) return new String[0];
         String[] res = savesDir.list((dir, name) -> !name.equals("Currently saved.txt"));
         for (int i = 0; i < res.length; i++)
-            res[i] = res[i].substring(0, res.length - 4);
+            res[i] = res[i].substring(0, res[i].length() - 4);
         return res;
     }
 }

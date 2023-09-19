@@ -427,8 +427,9 @@ public class ApiHandler implements HttpHandler {
         else if (path.equals("/io/saves/list")){
             try {
                 String response=objectMapper.writeValueAsString(SavesHandler.getSaveList());
+                System.out.println("Response is "+response);
                 sendJsonResponse(exchange,200,response);
-            }catch (JsonProcessingException e){
+            }catch (Exception e){
                 e.printStackTrace();
             }
         }
