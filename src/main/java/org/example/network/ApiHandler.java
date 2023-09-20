@@ -381,6 +381,7 @@ public class ApiHandler implements HttpHandler {
                 try {
                     objectMapper.readerForUpdating(ScheduleStructure.getInstance()).readValue(exchange.getRequestBody());
                     sendTextResponse(exchange, 200, "Request accepted");
+                    ScheduleSolution.getInstance().updateStructure();
                 } catch (Exception e) {
                     sendTextResponse(exchange, 400, "Invalid data format");
                 }
