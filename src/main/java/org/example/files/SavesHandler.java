@@ -57,6 +57,7 @@ public class SavesHandler {
             String data = sc.nextLine();
 
             //Update SubjectDao
+            SubjectDao.getInstance().clear();
             JsonNode arr = om.readTree(data);
             for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
                 String code = it.next();
@@ -67,6 +68,7 @@ public class SavesHandler {
             data = sc.nextLine();
 
             //Update TeacherDao
+            TeacherDao.getInstance().clear();
             arr = om.readTree(data);
             for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
                 String tname = it.next();
@@ -119,7 +121,6 @@ public class SavesHandler {
     }
 
     public static String[] getSaveList() {
-        System.out.println("List called");
         File savesDir = new File("Saves");
         if (!savesDir.exists()) return new String[0];
         String[] res = savesDir.list((dir, name) -> !name.equals("Currently saved.txt"));
