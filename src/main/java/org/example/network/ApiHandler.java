@@ -412,10 +412,19 @@ public class ApiHandler implements HttpHandler {
         }
         else if (path.equals("/io/saves/save")){
             if(querys==null){
-                sendTextResponse(exchange, 400, "No name provided to load");
+                sendTextResponse(exchange, 400, "No name provided to save");
                 return;
             }
             String res=SavesHandler.save(querys.substring(5).toUpperCase());
+            if(res==null)sendTextResponse(exchange,200,"Request accepted");
+            else sendTextResponse(exchange,400,res);
+        }
+        else if(path.equals("/io/saves/delete")){
+            if(querys==null){
+                sendTextResponse(exchange, 400, "No name provided to delete");
+                return;
+            }
+            String res=SavesHandler.delete(querys.substring(5).toUpperCase());
             if(res==null)sendTextResponse(exchange,200,"Request accepted");
             else sendTextResponse(exchange,400,res);
         }

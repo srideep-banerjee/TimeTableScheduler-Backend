@@ -1,6 +1,5 @@
 package org.example.files;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dao.SubjectDao;
@@ -20,7 +19,7 @@ public class SavesHandler {
     private static String currentSave = null;
 
     public static String save(String name) {
-        if (name.equals("Currently saved.txt") || name.equals("null")) return "Can't use name '" + name + "'";
+        if (name.equals("null")) return "Can't use name '" + name + "'";
         if (!new File("Saves").exists()) {
             boolean dirCreated = new File("Saves").mkdir();
             if (!dirCreated) return "Couldn't create 'Saves' directory";
@@ -51,7 +50,7 @@ public class SavesHandler {
         if (!new File("Saves").exists()) return "No save file named '" + name + "'";
         ObjectMapper om = new ObjectMapper();
         File saveFile = new File("Saves" + File.separator + name + ".dat");
-        if (!saveFile.exists() || name.equals("null") || name.equals("Currently saved.txt"))
+        if (!saveFile.exists() || name.equals("null"))
             return "No save file named '" + name + "'";
         try (Scanner sc = new Scanner(saveFile)) {
             String data = sc.nextLine();
@@ -127,5 +126,14 @@ public class SavesHandler {
         for (int i = 0; i < res.length; i++)
             res[i] = res[i].substring(0, res[i].length() - 4);
         return res;
+    }
+
+    public static String delete(String name){
+        if (!new File("Saves").exists()) return "No save file named '" + name + "'";
+        File saveFile = new File("Saves" + File.separator + name + ".dat");
+        if (!saveFile.exists() || name.equals("null"))
+            return "No save file named '" + name + "'";
+        if(!saveFile.delete())return "Couldn't delete file";
+        return null;
     }
 }
