@@ -47,6 +47,7 @@ public class Generator {
         new Thread(() -> {
             try {
                 updateVariables();
+                if(stopped) return;
                 System.out.println(new ObjectMapper().writeValueAsString(subjectCodeArray));
                 System.out.println(new ObjectMapper().writeValueAsString(teacherNameArray));
                 populate();
