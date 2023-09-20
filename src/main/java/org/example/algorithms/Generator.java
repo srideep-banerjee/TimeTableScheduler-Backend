@@ -46,6 +46,7 @@ public class Generator {
         stopped = false;
         new Thread(() -> {
             try {
+                long time=System.currentTimeMillis();
                 updateVariables();
                 if(stopped) return;
                 System.out.println(new ObjectMapper().writeValueAsString(subjectCodeArray));
@@ -64,6 +65,7 @@ public class Generator {
                 if (generation > maxGenerationCount && !stopped)
                     onResultListener.onError("Couldn't find stable time table with given constraints");
                 else {
+                    System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
                     Scanner sc = populationStorage.getChromosomeReader(maxFitnessIndex);
                     ScheduleSolution.getInstance().parseChromo(sc, subjectCodeArray, teacherNameArray);
                     onResultListener.onResult();
