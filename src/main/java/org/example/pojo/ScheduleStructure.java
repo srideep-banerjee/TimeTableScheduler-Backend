@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.example.dao.json.Byte1DArraySerializer;
 import org.example.dao.json.Byte2DArraySerializer;
 
-@JsonPropertyOrder({"semesterCount","sectionsPerSemester","periodCount","breaksPerSemester"})
+@JsonPropertyOrder({"semesterCount", "sectionsPerSemester", "periodCount", "breaksPerSemester"})
 public class ScheduleStructure {
     @JsonProperty("sectionsPerSemester")
     private byte[] sectionsPerSemester;
@@ -20,73 +20,76 @@ public class ScheduleStructure {
     private byte semesterCount;
     @JsonIgnore
     private static ScheduleStructure instance;
+
     @JsonIgnore
-    private ScheduleStructure(){}
+    private ScheduleStructure() {
+    }
+
     @JsonIgnore
-    public static ScheduleStructure getInstance(){
-        if(instance==null){
-            instance=new ScheduleStructure();
-            instance.semesterCount=4;
-            instance.sectionsPerSemester=new byte[]{0,0,1,0};
-            instance.periodCount=9;
-            instance.breaksPerSemester=new byte[][]{{4,5},{5},{5},{5}};
+    public static ScheduleStructure getInstance() {
+        if (instance == null) {
+            instance = new ScheduleStructure();
+            instance.semesterCount = 4;
+            instance.sectionsPerSemester = new byte[]{0, 0, 1, 0};
+            instance.periodCount = 9;
+            instance.breaksPerSemester = new byte[][]{{4, 5}, {5}, {5}, {5}};
         }
         return instance;
     }
 
     @JsonIgnore
-    public byte getSectionCount(int semester){
-        semester=semester%2==0?semester/2:(semester+1)/2;
-        return this.sectionsPerSemester[semester-1];
+    public byte getSectionCount(int semester) {
+        semester = semester % 2 == 0 ? semester / 2 : (semester + 1) / 2;
+        return this.sectionsPerSemester[semester - 1];
     }
 
     @JsonSerialize(using = Byte1DArraySerializer.class)
     @JsonGetter("sectionsPerSemester")
-    public byte[] getSectionsPerSemester(){
+    public byte[] getSectionsPerSemester() {
         return sectionsPerSemester;
     }
 
     @JsonIgnore
-    public byte[] getBreakLocations(int semester){
-        semester=semester%2==0?semester/2:(semester+1)/2;
-        return this.breaksPerSemester[semester-1];
+    public byte[] getBreakLocations(int semester) {
+        semester = semester % 2 == 0 ? semester / 2 : (semester + 1) / 2;
+        return this.breaksPerSemester[semester - 1];
     }
 
     @JsonSerialize(using = Byte2DArraySerializer.class)
     @JsonGetter("breaksPerSemester")
-    public byte[][] gerBreaksPerSemester(){
+    public byte[][] gerBreaksPerSemester() {
         return breaksPerSemester;
     }
 
-    public byte getPeriodCount(){
+    public byte getPeriodCount() {
         return this.periodCount;
     }
 
-    public byte getSemesterCount(){
+    public byte getSemesterCount() {
         return this.semesterCount;
     }
 
 
-    public void setSectionsPerSemester(byte[] sectionsPerSemester){
-        if(sectionsPerSemester.length!=semesterCount)
+    public void setSectionsPerSemester(byte[] sectionsPerSemester) {
+        if (sectionsPerSemester.length != semesterCount)
             throw new RuntimeException("Invalid data format");
-        this.sectionsPerSemester=sectionsPerSemester;
+        this.sectionsPerSemester = sectionsPerSemester;
     }
 
     public void setBreaksPerSemester(byte[][] breaksPerSemester) {
-        if(breaksPerSemester.length!=semesterCount)return;
-        for(byte[] breaks :breaksPerSemester){
-            for(byte br:breaks)
-                if(br>periodCount)throw new RuntimeException("Invalid data format");
+        if (breaksPerSemester.length != semesterCount) return;
+        for (byte[] breaks : breaksPerSemester) {
+            for (byte br : breaks)
+                if (br > periodCount) throw new RuntimeException("Invalid data format");
         }
         this.breaksPerSemester = breaksPerSemester;
     }
 
-    public void setPeriodCount(byte periodCount){
-        this.periodCount=periodCount;
+    public void setPeriodCount(byte periodCount) {
+        this.periodCount = periodCount;
     }
 
-    public void setSemesterCount(byte semesterCount){
-        this.semesterCount=semesterCount;
+    public void setSemesterCount(byte semesterCount) {
+        this.semesterCount = semesterCount;
     }
 }

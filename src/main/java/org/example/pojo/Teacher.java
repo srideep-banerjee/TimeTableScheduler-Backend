@@ -10,8 +10,8 @@ public class Teacher {
     private final HashSet<int[]> freeTime;
     private final HashSet<String> subjects;
 
-    public Teacher(@JsonProperty("freeTime")HashSet<int[]> freeTime, @JsonProperty("subjects")HashSet<String> subjects) {
-        this.freeTime=freeTime;
+    public Teacher(@JsonProperty("freeTime") HashSet<int[]> freeTime, @JsonProperty("subjects") HashSet<String> subjects) {
+        this.freeTime = freeTime;
         this.subjects = subjects;
     }
 

@@ -10,7 +10,7 @@ public class ScheduleSolution {
     private List<List<List<List<List<String>>>>> data;
     private static ScheduleSolution instance = null;
 
-    private boolean empty=true;
+    private boolean empty = true;
 
     private ScheduleSolution() {
         this.resetData();
@@ -22,7 +22,7 @@ public class ScheduleSolution {
     }
 
     public void resetData() {
-        empty=true;
+        empty = true;
         ScheduleStructure ss = ScheduleStructure.getInstance();
         data = new ArrayList<>();
         for (int i = 0; i < ss.getSemesterCount(); i++) {
@@ -45,15 +45,15 @@ public class ScheduleSolution {
         }
     }
 
-    public void updateStructure(){
+    public void updateStructure() {
         ScheduleStructure ss = ScheduleStructure.getInstance();
-        List<List<List<List<List<String>>>>> previousData=data;
+        List<List<List<List<List<String>>>>> previousData = data;
         resetData();
-        for(int i = 0; i < ss.getSemesterCount() && i < previousData.size(); i++){
-            for(int j=0;j< ss.getSectionCount(i * 2 + 1) && j<previousData.get(i).size(); j++){
-                for(int k = 0; k < 5; k++){
-                    for(int l = 0; l < ss.getPeriodCount() && l <previousData.get(i).get(j).get(k).size(); l++){
-                        data.get(i).get(j).get(k).set(l,previousData.get(i).get(j).get(k).get(l));
+        for (int i = 0; i < ss.getSemesterCount() && i < previousData.size(); i++) {
+            for (int j = 0; j < ss.getSectionCount(i * 2 + 1) && j < previousData.get(i).size(); j++) {
+                for (int k = 0; k < 5; k++) {
+                    for (int l = 0; l < ss.getPeriodCount() && l < previousData.get(i).get(j).get(k).size(); l++) {
+                        data.get(i).get(j).get(k).set(l, previousData.get(i).get(j).get(k).get(l));
                     }
                 }
             }
@@ -74,29 +74,28 @@ public class ScheduleSolution {
 
             for (byte sec = 0; sec < secCount; sec++) {
                 String teacher = null;
-                short val=-1;
+                short val = -1;
                 short value;
                 if (!practical) teacher = teachers[sc.nextShort()];
-                else val=sc.nextShort();
+                else val = sc.nextShort();
                 int lectureCount = subjectDao.get(subject).getLectureCount();
 
                 for (int j = 0; j < lectureCount; j++) {
                     if (practical) {
                         teacher = teachers[sc.nextShort()];
                         String key = String.format("%d,%d,%s", sem - 1, sec, subject);
-                        value= (short) (val+j);
+                        value = (short) (val + j);
                         if (!practicalPeriods.containsKey(key)) practicalPeriods.put(key, new ArrayList<>());
                         practicalPeriods.get(key).add(value);
                         if (!practicalTeachers.containsKey(key)) practicalTeachers.put(key, new HashSet<>());
                         practicalTeachers.get(key).add(teacher);
-                    }
-                    else {
+                    } else {
                         value = sc.nextShort();
                     }
                     data.get(sem - 1).get(sec).get(value / 10).set(value % 10, Arrays.asList(teacher, subject));
                 }
             }
-            empty=false;
+            empty = false;
         }
         for (String key : practicalPeriods.keySet()) {
             String[] keyData = key.split(",");
@@ -148,7 +147,7 @@ public class ScheduleSolution {
                 for (int k = 0; k < 5; k++) {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
                         if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name)) {
-                            String subject=data.get(i).get(j).get(k).get(l).get(1);
+                            String subject = data.get(i).get(j).get(k).get(l).get(1);
                             sch[k][l] = new String[]{String.valueOf(SubjectDao.getInstance().get(subject).getSem()), String.valueOf(j), subject};
                         }
                     }
@@ -177,29 +176,29 @@ public class ScheduleSolution {
         return data;
     }
 
-    public void setData(List<List<List<List<List<String>>>>> data){
-        empty=false;
-        this.data=data;
+    public void setData(List<List<List<List<List<String>>>>> data) {
+        empty = false;
+        this.data = data;
     }
 
     public List<List<List<String>>> getData(int semester, int section) {
         semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
-        try{
+        try {
             return this.data.get(semester - 1).get(section - 1);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return null;
         }
     }
 
     public boolean setData(int semester, int section, List<List<List<String>>> data) {
-        if(section>ScheduleStructure.getInstance().getSectionCount(semester))return false;
+        if (section > ScheduleStructure.getInstance().getSectionCount(semester)) return false;
         semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
-        if(semester>ScheduleStructure.getInstance().getSemesterCount())return false;
-        if(data.size()!=5) return  false;
-        for(int i=0;i<5;i++){
-            if(data.get(i).size()!=ScheduleStructure.getInstance().getPeriodCount())return false;
-            for(int j=0;j<ScheduleStructure.getInstance().getPeriodCount();j++){
-                if(data.get(i).get(j).size()!=2)return false;
+        if (semester > ScheduleStructure.getInstance().getSemesterCount()) return false;
+        if (data.size() != 5) return false;
+        for (int i = 0; i < 5; i++) {
+            if (data.get(i).size() != ScheduleStructure.getInstance().getPeriodCount()) return false;
+            for (int j = 0; j < ScheduleStructure.getInstance().getPeriodCount(); j++) {
+                if (data.get(i).get(j).size() != 2) return false;
             }
         }
         this.data.get(semester - 1).set(section - 1, data);
@@ -208,18 +207,18 @@ public class ScheduleSolution {
 
     public List<List<List<List<String>>>> getData(int semester) {
         semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
-        try{
+        try {
             return this.data.get(semester - 1);
-        }catch(Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return empty;
     }
 
-    public void setEmpty(boolean empty){
-        this.empty=empty;
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
     }
 }

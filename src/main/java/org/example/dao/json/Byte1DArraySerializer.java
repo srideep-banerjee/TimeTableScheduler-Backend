@@ -18,6 +18,7 @@ public class Byte1DArraySerializer extends JsonSerializer<byte[]> {
 
         jgen.writeEndArray();
     }
+
     private static int unsignedToBytes(byte b) {
         return b & 0xFF;
     }

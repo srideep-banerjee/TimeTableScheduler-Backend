@@ -14,7 +14,7 @@ public class Byte2DArraySerializer extends JsonSerializer<byte[][]> {
 
         for (byte[] bArr : bytes) {
             jgen.writeStartArray();
-            for(byte b: bArr){
+            for (byte b : bArr) {
                 jgen.writeNumber(unsignedToBytes(b));
             }
             jgen.writeEndArray();
@@ -22,6 +22,7 @@ public class Byte2DArraySerializer extends JsonSerializer<byte[][]> {
 
         jgen.writeEndArray();
     }
+
     private static int unsignedToBytes(byte b) {
         return b & 0xFF;
     }

@@ -35,14 +35,14 @@ public class LocalServer {
 
         //start server
         server.start();
-        System.out.println("Server started on port "+this.port);
+        System.out.println("Server started on port " + this.port);
 
     }
 
     public void addFileContexts(HttpServer server) {
         for (String path : FileIterator.getPathList()) {
             server.createContext(path, exchange -> {
-                if(!path.equals(exchange.getRequestURI().getPath())){
+                if (!path.equals(exchange.getRequestURI().getPath())) {
                     servePageNotFoundHtml(exchange);
                     return;
                 }
@@ -66,14 +66,14 @@ public class LocalServer {
         }
     }
 
-    public String getDefaultURL(){
-        return "http://localhost:"+port+"/"+homeHtml;
+    public String getDefaultURL() {
+        return "http://localhost:" + port + "/" + homeHtml;
     }
 
-    public void servePageNotFoundHtml(HttpExchange exchange){
+    public void servePageNotFoundHtml(HttpExchange exchange) {
         try {
-            InputStream is=this.getClass().getClassLoader().getResourceAsStream("NotFound.html");
-            byte[] bytes=is.readAllBytes();
+            InputStream is = this.getClass().getClassLoader().getResourceAsStream("NotFound.html");
+            byte[] bytes = is.readAllBytes();
             is.close();
             exchange.getResponseHeaders().set("Content-Type", "text/html");
             exchange.sendResponseHeaders(200, bytes.length);

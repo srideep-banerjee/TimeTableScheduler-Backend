@@ -32,24 +32,23 @@ public class ApiHandler implements HttpHandler {
     public ApiHandler(HttpServer server) {
         this.server = server;
         apiActionHelper = ApiActionHelper.getInstance();
-        objectMapper=new ObjectMapper();
-        generator=new Generator(null);
+        objectMapper = new ObjectMapper();
+        generator = new Generator(null);
     }
 
     @Override
     public void handle(HttpExchange exchange) {
         //try{
         apiActionHelper.performAction("heart beat received");
-        String path=exchange.getRequestURI().getPath();
-        String requestMethod= exchange.getRequestMethod();
-        String querys=exchange.getRequestURI().getQuery();
-        System.out.println(requestMethod+" "+path+(querys!=null?"?"+querys:""));
+        String path = exchange.getRequestURI().getPath();
+        String requestMethod = exchange.getRequestMethod();
+        String querys = exchange.getRequestURI().getQuery();
+        System.out.println(requestMethod + " " + path + (querys != null ? "?" + querys : ""));
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");
 
-        }
-        else if (path.equals("/io/teachers")) {
+        } else if (path.equals("/io/teachers")) {
             switch (requestMethod) {
                 case "GET" -> {
                     if (TeacherDao.getInstance().isEmpty()) {
@@ -101,21 +100,18 @@ public class ApiHandler implements HttpHandler {
                 }
                 default -> sendInvalidOperationResponse(exchange);
             }
-        }
-        else if(path.equals("/io/teachers/names")){
-            if(requestMethod.equals("GET")) {
+        } else if (path.equals("/io/teachers/names")) {
+            if (requestMethod.equals("GET")) {
 
                 try {
                     String response = new ObjectMapper().writeValueAsString(TeacherDao.getInstance().keySet());
-                    sendJsonResponse(exchange,200,response);
+                    sendJsonResponse(exchange, 200, response);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
-            }
-            else sendInvalidOperationResponse(exchange);
-        }
-        else if (path.startsWith("/io/teachers/") && (path.length()>"/io/teachers/".length())) {
-            String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();
+            } else sendInvalidOperationResponse(exchange);
+        } else if (path.startsWith("/io/teachers/") && (path.length() > "/io/teachers/".length())) {
+            String name = path.substring(path.lastIndexOf("/") + 1).toUpperCase();
 
             switch (requestMethod) {
                 case "GET" -> {
@@ -160,8 +156,7 @@ public class ApiHandler implements HttpHandler {
                 }
                 default -> sendInvalidOperationResponse(exchange);
             }
-        }
-        else if(path.equals("/io/subjects")) {
+        } else if (path.equals("/io/subjects")) {
             switch (requestMethod) {
                 case "GET" -> {
                     if (SubjectDao.getInstance().isEmpty()) {
@@ -209,21 +204,18 @@ public class ApiHandler implements HttpHandler {
                 }
                 default -> sendInvalidOperationResponse(exchange);
             }
-        }
-        else if(path.equals("/io/subjects/codes")){
-            if(requestMethod.equals("GET")) {
+        } else if (path.equals("/io/subjects/codes")) {
+            if (requestMethod.equals("GET")) {
                 String response;
                 try {
                     response = new ObjectMapper().writeValueAsString(SubjectDao.getInstance().keySet());
-                    sendJsonResponse(exchange,200,response);
+                    sendJsonResponse(exchange, 200, response);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
-            }
-            else sendInvalidOperationResponse(exchange);
-        }
-        else if(path.startsWith("/io/subjects/") && (path.length()>"/io/subjects/".length())){
-            String code=path.substring(path.lastIndexOf("/")+1).toUpperCase();
+            } else sendInvalidOperationResponse(exchange);
+        } else if (path.startsWith("/io/subjects/") && (path.length() > "/io/subjects/".length())) {
+            String code = path.substring(path.lastIndexOf("/") + 1).toUpperCase();
 
             switch (requestMethod) {
                 case "GET" -> {
@@ -265,26 +257,25 @@ public class ApiHandler implements HttpHandler {
                 }
                 default -> sendInvalidOperationResponse(exchange);
             }
-        }
-        else if(path.equals("/io/schedule")){
-            boolean generateNew=false;
-            int sem=-1;
-            int sec=-1;
-            if(querys!=null){
-                querys=querys.toLowerCase();
-                for(String query:querys.split("&")){
-                    String[] entry=query.split("=");
-                    try{
-                        switch (entry[0]){
-                            case "generatenew" -> generateNew=entry[1].equals("true");
-                            case "sem" -> sem=Integer.parseInt(entry[1]);
-                            case "sec" -> sec=Integer.parseInt(entry[1]);
+        } else if (path.equals("/io/schedule")) {
+            boolean generateNew = false;
+            int sem = -1;
+            int sec = -1;
+            if (querys != null) {
+                querys = querys.toLowerCase();
+                for (String query : querys.split("&")) {
+                    String[] entry = query.split("=");
+                    try {
+                        switch (entry[0]) {
+                            case "generatenew" -> generateNew = entry[1].equals("true");
+                            case "sem" -> sem = Integer.parseInt(entry[1]);
+                            case "sec" -> sec = Integer.parseInt(entry[1]);
                             default -> {
-                                sendTextResponse(exchange,400,"Invalid query parameters");
+                                sendTextResponse(exchange, 400, "Invalid query parameters");
                                 return;
                             }
                         }
-                    }catch (NumberFormatException e){
+                    } catch (NumberFormatException e) {
                         e.printStackTrace();
                     }
                 }
@@ -335,8 +326,7 @@ public class ApiHandler implements HttpHandler {
                             }
                             if (response.equals("null")) sendTextResponse(exchange, 400, "Semester or section invalid");
                             else sendJsonResponse(exchange, 200, response);
-                        }
-                        else{
+                        } else {
                             try {
                                 String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
                                 sendJsonResponse(exchange, 200, response);
@@ -361,88 +351,77 @@ public class ApiHandler implements HttpHandler {
                 }
                 default -> sendInvalidOperationResponse(exchange);
             }
-        }
-        else if(path.startsWith("/io/schedule/teacher/") && path.length()>21){
-            String name=path.substring(path.lastIndexOf("/")+1).toUpperCase();
-            if(requestMethod.equals("GET")){
-                if(!TeacherDao.getInstance().containsKey(name)){
-                    sendTextResponse(exchange,404,"Teacher not found");
+        } else if (path.startsWith("/io/schedule/teacher/") && path.length() > 21) {
+            String name = path.substring(path.lastIndexOf("/") + 1).toUpperCase();
+            if (requestMethod.equals("GET")) {
+                if (!TeacherDao.getInstance().containsKey(name)) {
+                    sendTextResponse(exchange, 404, "Teacher not found");
                     return;
                 }
-                if(ScheduleSolution.getInstance().isEmpty()){
-                    sendTextResponse(exchange,404,"Schedule is empty");
+                if (ScheduleSolution.getInstance().isEmpty()) {
+                    sendTextResponse(exchange, 404, "Schedule is empty");
                     return;
                 }
                 try {
-                    String response=objectMapper.writeValueAsString(ScheduleSolution.getInstance().getTeacherScheduleByName(name));
-                    sendTextResponse(exchange,200,response);
+                    String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getTeacherScheduleByName(name));
+                    sendTextResponse(exchange, 200, response);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
-            }
-            else sendInvalidOperationResponse(exchange);
-        }
-        else if (path.startsWith("/io/schedule/structure")){
-            if(requestMethod.equals("GET")){
-                try{
-                    String response=objectMapper.writeValueAsString(ScheduleStructure.getInstance());
-                    sendJsonResponse(exchange,200,response);
-                }catch(JsonProcessingException e){
+            } else sendInvalidOperationResponse(exchange);
+        } else if (path.startsWith("/io/schedule/structure")) {
+            if (requestMethod.equals("GET")) {
+                try {
+                    String response = objectMapper.writeValueAsString(ScheduleStructure.getInstance());
+                    sendJsonResponse(exchange, 200, response);
+                } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
-            }
-            else if(requestMethod.equals("PUT")){
-                try{
+            } else if (requestMethod.equals("PUT")) {
+                try {
                     objectMapper.readerForUpdating(ScheduleStructure.getInstance()).readValue(exchange.getRequestBody());
-                    sendTextResponse(exchange,200,"Request accepted");
-                }catch (Exception e){
-                    sendTextResponse(exchange,400,"Invalid data format");
+                    sendTextResponse(exchange, 200, "Request accepted");
+                } catch (Exception e) {
+                    sendTextResponse(exchange, 400, "Invalid data format");
                 }
-            }
-            else sendInvalidOperationResponse(exchange);
-        }
-        else if (path.equals("/io/saves/load")){
-            if(querys==null){
+            } else sendInvalidOperationResponse(exchange);
+        } else if (path.equals("/io/saves/load")) {
+            if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to load");
                 return;
             }
-            String res=SavesHandler.load(querys.substring(5).toUpperCase());
-            if(res==null)sendTextResponse(exchange,200,"Request accepted");
-            else sendTextResponse(exchange,400,res);
-        }
-        else if (path.equals("/io/saves/save")){
-            if(querys==null){
+            String res = SavesHandler.load(querys.substring(5).toUpperCase());
+            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+            else sendTextResponse(exchange, 400, res);
+        } else if (path.equals("/io/saves/save")) {
+            if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to save");
                 return;
             }
-            String res=SavesHandler.save(querys.substring(5).toUpperCase());
-            if(res==null)sendTextResponse(exchange,200,"Request accepted");
-            else sendTextResponse(exchange,400,res);
-        }
-        else if(path.equals("/io/saves/delete")){
-            if(querys==null){
+            String res = SavesHandler.save(querys.substring(5).toUpperCase());
+            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+            else sendTextResponse(exchange, 400, res);
+        } else if (path.equals("/io/saves/delete")) {
+            if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to delete");
                 return;
             }
-            String res=SavesHandler.delete(querys.substring(5).toUpperCase());
-            if(res==null)sendTextResponse(exchange,200,"Request accepted");
-            else sendTextResponse(exchange,400,res);
-        }
-        else if (path.equals("/io/saves/currentName")){
-            String res=SavesHandler.getCurrentSave();
-            if(res==null)sendTextResponse(exchange,400,"null");
-            else sendTextResponse(exchange,200,res);
-        }
-        else if (path.equals("/io/saves/list")){
+            String res = SavesHandler.delete(querys.substring(5).toUpperCase());
+            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+            else sendTextResponse(exchange, 400, res);
+        } else if (path.equals("/io/saves/currentName")) {
+            String res = SavesHandler.getCurrentSave();
+            if (res == null) sendTextResponse(exchange, 400, "null");
+            else sendTextResponse(exchange, 200, res);
+        } else if (path.equals("/io/saves/list")) {
             try {
-                String response=objectMapper.writeValueAsString(SavesHandler.getSaveList());
-                System.out.println("Response is "+response);
-                sendJsonResponse(exchange,200,response);
-            }catch (Exception e){
+                String response = objectMapper.writeValueAsString(SavesHandler.getSaveList());
+                System.out.println("Response is " + response);
+                sendJsonResponse(exchange, 200, response);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-        else
+        } else
             // Handle other HTTP methods or unsupported paths
             sendTextResponse(exchange, 405, "Unsupported request");
 
@@ -453,12 +432,12 @@ public class ApiHandler implements HttpHandler {
     }
 
     public void sendInvalidOperationResponse(HttpExchange exchange) {
-        sendTextResponse(exchange,405,"Method not allowed");
+        sendTextResponse(exchange, 405, "Method not allowed");
     }
 
     public void sendTextResponse(HttpExchange exchange, int code, String response) {
         try {
-            exchange.getResponseHeaders().set("Content-Type","text/plain");
+            exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -467,9 +446,10 @@ public class ApiHandler implements HttpHandler {
             e.printStackTrace();
         }
     }
-    public void sendJsonResponse(HttpExchange exchange, int code, String response){
+
+    public void sendJsonResponse(HttpExchange exchange, int code, String response) {
         try {
-            exchange.getResponseHeaders().set("Content-Type","application/json");
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());

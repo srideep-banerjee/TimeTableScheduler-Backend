@@ -82,8 +82,7 @@ public class SavesHandler {
             data = sc.nextLine();
             if (Boolean.parseBoolean(data)) {
                 ScheduleSolution.getInstance().setEmpty(Boolean.parseBoolean(data));
-            }
-            else {
+            } else {
                 List<List<List<List<List<String>>>>> l = new ArrayList<>();
                 ScheduleSolution.getInstance().setData(om.reader().readValue(sc.nextLine(), l.getClass()));
             }
@@ -128,12 +127,12 @@ public class SavesHandler {
         return res;
     }
 
-    public static String delete(String name){
+    public static String delete(String name) {
         if (!new File("Saves").exists()) return "No save file named '" + name + "'";
         File saveFile = new File("Saves" + File.separator + name + ".dat");
         if (!saveFile.exists() || name.equals("null"))
             return "No save file named '" + name + "'";
-        if(!saveFile.delete())return "Couldn't delete file";
+        if (!saveFile.delete()) return "Couldn't delete file";
         return null;
     }
 }

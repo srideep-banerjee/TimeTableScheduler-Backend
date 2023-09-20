@@ -2,7 +2,7 @@ package org.example.pojo;
 
 import com.fasterxml.jackson.annotation.*;
 
-@JsonPropertyOrder({"sem", "lectureCount","isPractical","roomCode"})
+@JsonPropertyOrder({"sem", "lectureCount", "isPractical", "roomCode"})
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public class Subject {
     @JsonAlias({"semester"})
@@ -13,7 +13,7 @@ public class Subject {
     @JsonAlias({"room"})
     private final String roomCode;
 
-    public Subject(@JsonProperty("sem")int sem, @JsonProperty("lectureCount")int lectureCount, @JsonProperty("isPractical")boolean isPractical, @JsonProperty("roomCode")String roomCode) {
+    public Subject(@JsonProperty("sem") int sem, @JsonProperty("lectureCount") int lectureCount, @JsonProperty("isPractical") boolean isPractical, @JsonProperty("roomCode") String roomCode) {
         this.sem = sem;
         this.lectureCount = lectureCount;
         this.isPractical = isPractical;
