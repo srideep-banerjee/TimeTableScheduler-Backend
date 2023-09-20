@@ -39,10 +39,6 @@ public class LocalServer {
 
     }
 
-    public int getPort() {
-        return this.port;
-    }
-
     public void addFileContexts(HttpServer server) {
         for (String path : FileIterator.getPathList()) {
             server.createContext(path, exchange -> {
