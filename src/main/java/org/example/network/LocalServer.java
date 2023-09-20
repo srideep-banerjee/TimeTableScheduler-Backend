@@ -50,7 +50,6 @@ public class LocalServer {
                     servePageNotFoundHtml(exchange);
                     return;
                 }
-                System.out.println("File: "+path);
                 try {
                     FileInputStream fis = new FileInputStream("web/" + path);
                     byte[] bytes = fis.readAllBytes();
@@ -76,7 +75,6 @@ public class LocalServer {
     }
 
     public void servePageNotFoundHtml(HttpExchange exchange){
-        System.out.println("404 called for "+exchange.getRequestURI().getPath());
         try {
             InputStream is=this.getClass().getClassLoader().getResourceAsStream("NotFound.html");
             byte[] bytes=is.readAllBytes();
