@@ -23,7 +23,8 @@ public class HeartBeat extends Thread {
             } catch (InterruptedException e) {
                 break;
             }
-            if (seconds.incrementAndGet() == 30) apiActionHelper.performAction("shutdown");
+            if (seconds.incrementAndGet() == 60) break;
         }
+        apiActionHelper.performAction("shutdown");
     }
 }
