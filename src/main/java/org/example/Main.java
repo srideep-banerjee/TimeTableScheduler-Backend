@@ -4,16 +4,9 @@ import me.friwi.jcefmaven.CefAppBuilder;
 import me.friwi.jcefmaven.CefInitializationException;
 import me.friwi.jcefmaven.MavenCefAppHandlerAdapter;
 import me.friwi.jcefmaven.UnsupportedPlatformException;
-import me.friwi.jcefmaven.impl.progress.ConsoleProgressHandler;
 import org.cef.CefApp;
 import org.cef.CefClient;
-import org.cef.CefSettings;
 import org.cef.browser.CefBrowser;
-import org.cef.browser.CefBrowserFactory;
-import org.cef.handler.CefAppHandlerAdapter;
-import org.cef.handler.CefLoadHandlerAdapter;
-import org.cef.handler.CefLoadHandler.ErrorCode;
-import org.cef.network.CefCookieManager;
 import javax.swing.JFrame;
 
 import org.example.dao.SubjectDao;
@@ -25,7 +18,6 @@ import org.example.network.LocalServer;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 public class Main {
     static LocalServer ls;
@@ -72,7 +64,7 @@ public class Main {
             app = builder.build();
         } catch (IOException | InterruptedException | CefInitializationException | UnsupportedPlatformException e) {
             System.out.println(e);
-            System.exit(0);
+            System.exit(1);
         }
 
         // Create a CefClient instance
