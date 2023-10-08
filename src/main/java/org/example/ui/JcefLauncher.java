@@ -41,10 +41,16 @@ public class JcefLauncher {
         // Create a CefClient instance
         CefClient client = app.createClient();
 
+        // Create a CefBrowser instance
+        CefBrowser browser = client.createBrowser(this.url, false, false);
+
+        final ContextMenuHandler contextMenuHandler = new ContextMenuHandler(browser.getDevTools(), this.url);
+        client.addContextMenuHandler(contextMenuHandler);
+
         client.addDisplayHandler(new CefDisplayHandler() {
             @Override
-            public void onAddressChange(CefBrowser browser, CefFrame frame, String ul) {
-                url= ul;
+            public void onAddressChange(CefBrowser browser, CefFrame frame, String url) {
+                contextMenuHandler.setUrl(url);
             }
 
             @Override
@@ -72,11 +78,6 @@ public class JcefLauncher {
                 return false;
             }
         });
-
-        client.addContextMenuHandler(new ContextMenuHandler(this));
-
-        // Create a CefBrowser instance
-        CefBrowser browser = client.createBrowser(this.url, false, false);
 
         // Create a JFrame to host the browser
         JFrame frame = new JFrame("Time Table Scheduler");
