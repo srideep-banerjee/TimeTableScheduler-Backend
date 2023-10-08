@@ -7,10 +7,6 @@ import org.example.network.ApiActionHelper;
 import org.example.network.LocalServer;
 import org.example.ui.JcefLauncher;
 
-import javax.swing.*;
-import java.awt.*;
-import java.net.URI;
-
 public class Main {
     static LocalServer ls;
 

@@ -81,6 +81,7 @@ public class JcefLauncher {
 
         // Create a JFrame to host the browser
         JFrame frame = new JFrame("Time Table Scheduler");
+        frame.setSize(1260,700);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(browser.getUIComponent(), BorderLayout.CENTER);
