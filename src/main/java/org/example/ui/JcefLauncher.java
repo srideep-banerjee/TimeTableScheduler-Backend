@@ -12,11 +12,13 @@ import org.cef.handler.CefDisplayHandler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
 public class JcefLauncher {
     String url;
+    Timer timer;
 
     public JcefLauncher(String url) {
         this.url = url;
@@ -81,10 +83,34 @@ public class JcefLauncher {
 
         // Create a JFrame to host the browser
         JFrame frame = new JFrame("Time Table Scheduler");
-        frame.setSize(1260,700);
+        frame.setSize(1260, 700);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(browser.getUIComponent(), BorderLayout.CENTER);
+        frame.addComponentListener(new ComponentAdapter() {
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                int w = frame.getWidth();
+                int h = frame.getHeight();
+                if (w < 1260 && h < 700) {
+                    if (timer == null) {
+                        timer = new Timer(100, (ActionListener) -> {
+                            timer.stop();
+                            timer = null;
+                            frame.setSize(new Dimension(1260, 700));
+                            frame.repaint();
+                            frame.revalidate();
+                        });
+                        timer.start();
+                    } else {
+                        timer.restart();
+                    }
+                }
+                super.componentResized(e);
+            }
+
+        });
         frame.setVisible(true);
     }
 }
