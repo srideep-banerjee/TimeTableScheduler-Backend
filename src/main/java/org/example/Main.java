@@ -5,7 +5,8 @@ import org.example.dao.TeacherDao;
 import org.example.files.SavesHandler;
 import org.example.network.ApiActionHelper;
 import org.example.network.LocalServer;
-import org.example.ui.JcefLauncher;
+
+import java.io.IOException;
 
 public class Main {
     static LocalServer ls;
@@ -28,7 +29,15 @@ public class Main {
         String saveName = SavesHandler.getCurrentSave();
         if (saveName != null) SavesHandler.load(saveName);
 
-        JcefLauncher jcefLauncher = new JcefLauncher(ls.getDefaultURL());
-        jcefLauncher.launch();
+        /*JcefLauncher jcefLauncher = new JcefLauncher(ls.getDefaultURL());
+        jcefLauncher.launch();*/
+        try {
+            Process p=Runtime.getRuntime().exec("java -jar TTSBrowserComponent.jar "+ls.getDefaultURL());
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Process exited");
+        System.exit(0);
     }
 }

@@ -13,7 +13,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Generator {
-    private final int populationSize = 200;
+    private final int populationSize = 100;
     private final int tournamentSize = 5;
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;

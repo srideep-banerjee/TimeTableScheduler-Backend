@@ -13,8 +13,11 @@ build/
 ### Save files ###
 /Saves/
 
-### JCEF files
+### JCEF files ###
 /jcef-bundle/
+
+### TTSBrowser jar
+/TTSBrowserComponent.jar
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
