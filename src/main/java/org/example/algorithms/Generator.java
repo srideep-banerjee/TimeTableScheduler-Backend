@@ -109,7 +109,7 @@ public class Generator {
 
         for (int i = 0; i < teacherNameArray.length; i++) {
             for (String code : teacherDao.get(teacherNameArray[i]).getSubjects())
-                teachersForSubjects[indexOfSubject.get(code)].add(i);
+                if(subjectDao.containsKey(code)) teachersForSubjects[indexOfSubject.get(code)].add(i);
         }
 
         for (int i = 0; i < teachersForSubjects.length; i++)
