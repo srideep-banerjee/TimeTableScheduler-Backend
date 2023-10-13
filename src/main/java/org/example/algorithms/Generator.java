@@ -1,6 +1,5 @@
 package org.example.algorithms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.interfaces.OnResultListener;
@@ -17,7 +16,7 @@ public class Generator {
     private final int tournamentSize = 5;
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;
-    private final int maxGenerationCount = 120;
+    private final int stagnantTerminationCount = 50;
     private final int threadCount=4;
     private int chromoLength = 0;
     private String[] subjectCodeArray = null;
@@ -52,21 +51,26 @@ public class Generator {
                 updateVariables();
                 if(stopped) return;
                 populate();
+                float prevMaxFitness = maxFitness;
+                int stagnantCount = 0;
                 calculateFitness();
-                System.out.print("\rGeneration:" + generation + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
-                while (maxFitness != 1 && generation <= maxGenerationCount && !stopped) {
+                System.out.print("\rGeneration:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
+                while (maxFitness != 1 && stagnantCount <= stagnantTerminationCount && !stopped) {
+                    if(maxFitness == prevMaxFitness) stagnantCount++;
+                    else stagnantCount = 0;
+                    prevMaxFitness = maxFitness;
                     selectParents();
                     generateNewPopulation();
                     calculateFitness();
                     generation++;
-                    System.out.print("\rGeneration:" + generation + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
+                    System.out.print("\rGeneration:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
                 }
                 System.out.println("\nMax Fitness Index = " + maxFitnessIndex);
 
                 //terminate threads
                 for(GeneticThread gt:geneticThreads) gt.interrupt();
 
-                if (generation > maxGenerationCount && !stopped)
+                if (stagnantCount > stagnantTerminationCount && !stopped)
                     onResultListener.onError("Couldn't find stable time table with given constraints");
                 else {
                     System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
