@@ -162,8 +162,8 @@ public class Generator {
                 int lectureCount = subjectDao.get(subjectCodeArray[i]).getLectureCount();
                 boolean practical = subjectDao.get(subjectCodeArray[i]).isPractical();
                 if (practical) {
-                    short period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), (short) lectureCount, random);
-                    ps.println((short) (random.nextInt(5) * 10 + period));
+                    byte period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), (short) lectureCount, random);
+                    ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                 } else {
                     short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                     ps.println(teacher);
@@ -173,8 +173,8 @@ public class Generator {
                         short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                         ps.println(teacher);
                     } else {
-                        short period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), random);
-                        ps.println((short) (random.nextInt(5) * 10 + period));
+                        byte period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), random);
+                        ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                     }
                 }
             }
@@ -276,8 +276,9 @@ public class Generator {
                     } else {
                         value = sc.nextShort();
                     }
-                    short period = (short) (value % 10 + 1);
-                    short day = (short) (value / 10 + 1);
+                    DayPeriod dp= new DayPeriod(value);
+                    short period = (short) (dp.period + 1);
+                    short day = (short) (dp.day + 1);
 
                     //evaluating h2
                     if (!teacherDao.get(teacher).getFreeTime().contains(new int[]{day, period}) && !teacherDao.get(teacher).getFreeTime().isEmpty())
@@ -450,8 +451,8 @@ public class Generator {
                                 val1 = sc1.nextShort();
                                 val2 = sc2.nextShort();
                                 if (mutate) {
-                                    short period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), (short) lectureCount, random);
-                                    ps.println((short) (random.nextInt(5) * 10 + period));
+                                    byte period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), (short) lectureCount, random);
+                                    ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                                 } else {
                                     ps.println(random.nextBoolean() ? val1 : val2);
                                 }
@@ -480,8 +481,8 @@ public class Generator {
                                     val1 = sc1.nextShort();
                                     val2 = sc2.nextShort();
                                     if (mutate) {
-                                        short period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), random);
-                                        ps.println((short) (random.nextInt(5) * 10 + period));
+                                        byte period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), random);
+                                        ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                                     } else {
                                         ps.println(random.nextBoolean() ? val1 : val2);
                                     }
@@ -564,14 +565,14 @@ public class Generator {
         }*/
     }
 
-    private short getRandomExcluding(short upperBound, byte[] exclude, Random rand) {
-        short random = (short) rand.nextInt(upperBound - exclude.length);
+    private byte getRandomExcluding(short upperBound, byte[] exclude, Random rand) {
+        byte random = (byte) rand.nextInt(upperBound - exclude.length);
         for (byte ex : exclude)
             if (ex - 1 <= random) random++;
         return random;
     }
 
-    public short getRandomExcludingTrailing(short upperBound, byte[] exclude, short trailingLength, Random rand) {
+    public byte getRandomExcludingTrailing(short upperBound, byte[] exclude, short trailingLength, Random rand) {
         ArrayList<Byte> available = new ArrayList<>();
         byte excludeIndex = 0;
         for (byte i = 0; i <= upperBound - trailingLength; i++) {

@@ -1,5 +1,6 @@
 package org.example.pojo;
 
+import org.example.algorithms.DayPeriod;
 import org.example.dao.SubjectDao;
 
 import java.util.*;
@@ -100,7 +101,8 @@ public class ScheduleSolution {
                     } else {
                         value = sc.nextShort();
                     }
-                    data.get(sem - 1).get(sec).get(value / 10).set(value % 10, Arrays.asList(teacher, subject));
+                    DayPeriod dayPeriod = new DayPeriod(value);
+                    data.get(sem - 1).get(sec).get(dayPeriod.day).set(dayPeriod.period, Arrays.asList(teacher, subject));
                 }
             }
             empty = false;
@@ -109,10 +111,11 @@ public class ScheduleSolution {
             String[] keyData = key.split(",");
             String teachersCombined = String.join("+", practicalTeachers.get(key));
             for (Short value : practicalPeriods.get(key)) {
+                DayPeriod dp= new DayPeriod(value);
                 data.get(Short.parseShort(keyData[0]))
                         .get(Short.parseShort(keyData[1]))
-                        .get(value / 10)
-                        .get(value % 10)
+                        .get(dp.day)
+                        .get(dp.period)
                         .set(0, teachersCombined);
             }
         }
