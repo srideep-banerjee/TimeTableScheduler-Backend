@@ -380,7 +380,7 @@ public class Generator {
             }
 
             //evaluating h13
-            //count += Math.abs(slots.size() - teachers.size());
+            count += Math.abs(slots.size() - teachers.size());
         }
 
         //evaluating h10
