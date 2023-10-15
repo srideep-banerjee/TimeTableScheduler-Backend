@@ -3,8 +3,8 @@ package org.example.algorithms;
 import org.example.pojo.ScheduleStructure;
 
 public class DayPeriod {
-    public byte day;
-    public byte period;
+    public final byte day;
+    public final byte period;
 
     public DayPeriod(byte day, byte period) {
         this.day = day;
