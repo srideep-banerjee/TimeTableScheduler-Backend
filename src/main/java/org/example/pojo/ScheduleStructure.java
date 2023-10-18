@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.example.dao.json.Byte1DArraySerializer;
 import org.example.dao.json.Byte2DArraySerializer;
 
+import java.util.Arrays;
+
 @JsonPropertyOrder({"semesterCount", "sectionsPerSemester", "periodCount", "breaksPerSemester"})
 public class ScheduleStructure {
     @JsonProperty("sectionsPerSemester")
@@ -79,6 +81,7 @@ public class ScheduleStructure {
     public void setBreaksPerSemester(byte[][] breaksPerSemester) {
         if (breaksPerSemester.length != semesterCount) return;
         for (byte[] breaks : breaksPerSemester) {
+            Arrays.sort(breaks);
             for (byte br : breaks)
                 if (br > periodCount) throw new RuntimeException("Invalid data format");
         }
