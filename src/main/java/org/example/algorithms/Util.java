@@ -1,24 +1,52 @@
 package org.example.algorithms;
 
-import java.util.List;
+import org.example.dao.SubjectDao;
+import org.example.pojo.ScheduleStructure;
+import org.example.pojo.Subject;
+
 import java.util.Random;
 
 public class Util {
-    public static <T> void shuffle(List<T> arr) {
+    public static int[] shuffle(int upperBound) {
+        return shuffle(0, upperBound);
+    }
+
+    public static int[] shuffle(int lowerBound, int upperBound) {
+        if (upperBound - lowerBound == 1) return new int[]{lowerBound};
+        int[] arr = new int[upperBound-lowerBound];
+        for(int i = 0; i < arr.length; i++) arr[i] = i + lowerBound;
         Random random = new Random();
         int ind1;
         int ind2;
-        T item;
-        for (int i = 0; i < arr.size(); i++) {
+        for (int i = 0; i < arr.length; i++) {
             //Select distinct indices
-            ind1 = random.nextInt(arr.size());
-            ind2 = random.nextInt(arr.size() - 1);
+            ind1 = random.nextInt(arr.length);
+            ind2 = random.nextInt(arr.length - 1);
             if (ind2 >= ind1) ind2++;
 
             //Swap items in those two indices
-            item = arr.get(ind1);
-            arr.set(ind1, arr.get(ind2));
-            arr.set(ind2, item);
+            arr[ind1] = arr[ind1] + arr[ind2];
+            arr[ind2] = arr[ind1] - arr[ind2];
+            arr[ind1] = arr[ind1] - arr[ind2];
         }
+        return arr;
+    }
+
+    public static byte getPracticalStartingPeriodLocation(String subject) {
+        ScheduleStructure scheduleStructure = ScheduleStructure.getInstance();
+        byte res = 0;
+        short upperBound = scheduleStructure.getPeriodCount();
+        Subject sub = SubjectDao.getInstance().get(subject);
+        short trailingLength = (short) sub.getLectureCount();
+        byte[] exclude = scheduleStructure.getBreakLocations(sub.getSem());
+        byte excludeIndex = 0;
+        for (byte i = 0; i <= upperBound - trailingLength; i++) {
+            if (excludeIndex < exclude.length && exclude[excludeIndex] - 1 < i + trailingLength) {
+                i = (byte) (exclude[excludeIndex++] - 1);
+                continue;
+            }
+            res = i;
+        }
+        return res;
     }
 }

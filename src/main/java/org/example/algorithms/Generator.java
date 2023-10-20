@@ -17,7 +17,7 @@ public class Generator {
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;
     private final int stagnantTerminationCount = 50;
-    private final int threadCount=4;
+    private final int threadCount=1;
     private int chromoLength = 0;
     private String[] subjectCodeArray = null;
     private String[] teacherNameArray = null;
@@ -50,7 +50,7 @@ public class Generator {
                 long time=System.currentTimeMillis();
                 updateVariables();
                 if(stopped) return;
-                populate();
+                generateInitialPopulation();
                 float prevMaxFitness = maxFitness;
                 int stagnantCount = 0;
                 calculateFitness();
@@ -91,7 +91,7 @@ public class Generator {
         this.subjectCodeArray = subjectDao.keySet().toArray(String[]::new);
         this.teacherNameArray = teacherDao.keySet().toArray(String[]::new);
 
-        //update geneticThreads
+        //start geneticThreads
         geneticThreads=new ArrayList<>();
         int populationPerThread=populationSize/threadCount;
         for(int i=0;i<threadCount;i++){
@@ -100,21 +100,15 @@ public class Generator {
             gt.start();
         }
 
-        //update indexOfSubject
-        this.indexOfSubject = new HashMap<>();
-        for (short i = 0; i < subjectCodeArray.length; i++)
-            indexOfSubject.put(subjectCodeArray[i], i);
+        PreComputation preComputation = new PreComputation(subjectCodeArray, teacherNameArray);
+        preComputation.compute();
 
-        //update teachersForSubjects
-        this.teachersForSubjects = new ArrayList[subjectCodeArray.length];
+        this.indexOfSubject = preComputation.getIndexOfSubject();
 
-        for (int i = 0; i < teachersForSubjects.length; i++)
-            teachersForSubjects[i] = new ArrayList<>();
+        this.teachersForSubjects = preComputation.getTeachersForSubjects();
 
-        for (int i = 0; i < teacherNameArray.length; i++) {
-            for (String code : teacherDao.get(teacherNameArray[i]).getSubjects())
-                if(subjectDao.containsKey(code)) teachersForSubjects[indexOfSubject.get(code)].add(i);
-        }
+        System.out.println(Arrays.toString(subjectCodeArray));
+        System.out.println(Arrays.toString(teacherNameArray));
 
         for (int i = 0; i < teachersForSubjects.length; i++)
             if (teachersForSubjects[i].isEmpty()) {
@@ -132,7 +126,7 @@ public class Generator {
         }
     }
 
-    private void populate() throws IOException {
+    private void generateInitialPopulation() throws IOException {
         populationStorage = new PopulationStorage(generation);
         for (GeneticThread gt:geneticThreads){
             gt.perform((index,populationPerThread)->{
@@ -156,25 +150,43 @@ public class Generator {
         PrintStream ps = populationStorage.getChromosomeWriter(index);
         Random random = new Random();
 
+        ChromosomeAnalyzer ca = new ChromosomeAnalyzer(subjectCodeArray, teacherNameArray);
+
         for (int i = 0; i < subjectCodeArray.length; i++) {
             byte sem = (byte) subjectDao.get(subjectCodeArray[i]).getSem();
             for (byte sec = 1; sec <= scheduleData.getSectionCount(sem); sec++) {
+                SemesterSection semesterSection = new SemesterSection(sem, sec);
                 int lectureCount = subjectDao.get(subjectCodeArray[i]).getLectureCount();
                 boolean practical = subjectDao.get(subjectCodeArray[i]).isPractical();
                 if (practical) {
-                    byte period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), (short) lectureCount, random);
-                    ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
+                    //Select distinct random teachers
+                    short[] teachers = new short[lectureCount];
+                    int[] randomIndices = Util.shuffle(teachersForSubjects[i].size());
+                    for (short ind = 0; ind < teachers.length; ind++) {
+                        teachers[ind] = (short) (int) teachersForSubjects[i].get(randomIndices[ind]);
+                    }
+
+                    DayPeriod dayPeriod = ca.suggestPracticalDayPeriod(semesterSection, teachers, subjectCodeArray[i]);
+                    ps.println(dayPeriod.getCompact());
+//                    byte period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), (short) lectureCount, random);
+//                    ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
+
+                    ca.assignPractical(semesterSection, dayPeriod, teachers, subjectCodeArray[i]);
+                    for (int k = 0; k < lectureCount; k++) {
+                        ps.println(teachers[k]);
+//                        short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
+//                        ps.println(teacher);
+                    }
                 } else {
                     short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
                     ps.println(teacher);
-                }
-                for (int k = 0; k < lectureCount; k++) {
-                    if (practical) {
-                        short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
-                        ps.println(teacher);
-                    } else {
-                        byte period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), random);
-                        ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
+
+                    ArrayList<DayPeriod> dayPeriods = ca.suggestTheoryDayPeriod(semesterSection, teacher, subjectCodeArray[i]);
+                    for (DayPeriod dayPeriod: dayPeriods) {
+                        ca.assignTheory(semesterSection, dayPeriod, teacher, subjectCodeArray[i]);
+                        ps.println(dayPeriod.getCompact());
+//                        byte period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), random);
+//                        ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                     }
                 }
             }
@@ -451,7 +463,7 @@ public class Generator {
                                 val1 = sc1.nextShort();
                                 val2 = sc2.nextShort();
                                 if (mutate) {
-                                    byte period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), (short) lectureCount, random);
+                                    byte period = Util.getPracticalStartingPeriodLocation(subjectCodeArray[i]);
                                     ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                                 } else {
                                     ps.println(random.nextBoolean() ? val1 : val2);
