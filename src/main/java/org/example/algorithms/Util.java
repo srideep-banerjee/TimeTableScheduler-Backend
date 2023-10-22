@@ -12,6 +12,7 @@ public class Util {
     }
 
     public static int[] shuffle(int lowerBound, int upperBound) {
+        if(upperBound == lowerBound) return new int[0];
         if (upperBound - lowerBound == 1) return new int[]{lowerBound};
         int[] arr = new int[upperBound-lowerBound];
         for(int i = 0; i < arr.length; i++) arr[i] = i + lowerBound;
