@@ -145,7 +145,7 @@ public class ChromosomeAnalyzer {
 //        }
     }
 
-    public void assignPractical(SemesterSection semesterSection, DayPeriod startDayPeriod, short[] teacherIndices, String subject) {
+    public void assignPractical(SemesterSection semesterSection, DayPeriod startDayPeriod, short[] teacherIndices, String subject, String roomCode) {
         Subject subjectObj = SubjectDao.getInstance().get(subject);
         if(!subjectObj.isPractical())  throw new IllegalArgumentException(subject + " is not a practical subject");
 
@@ -153,7 +153,7 @@ public class ChromosomeAnalyzer {
         short compact = startDayPeriod.getCompact();
 
         HashMap<DayPeriod, String> sectionSlots = sectionAllocationTable.computeIfAbsent(semesterSection, k -> new HashMap<>());
-        HashSet<DayPeriod> labAllocDayPeriods = practicalLabAllocationTable.computeIfAbsent(subjectObj.getRoomCode(), k -> new HashSet<>());
+        HashSet<DayPeriod> labAllocDayPeriods = practicalLabAllocationTable.computeIfAbsent(roomCode, k -> new HashSet<>());
 
         //iterate through all day-period of practical class
         for (short com = compact; com < compact + lectureCount; com++) {
@@ -171,7 +171,7 @@ public class ChromosomeAnalyzer {
             }
 
             //check if practical lab free during period
-            if(isPracticalLabFree(dayPeriod, subjectObj.getRoomCode()))
+            if(isPracticalLabFree(dayPeriod, roomCode))
                 labAllocDayPeriods.add(dayPeriod);
         }
 
@@ -185,42 +185,51 @@ public class ChromosomeAnalyzer {
         }
     }
 
-    public boolean isAssignConflicting(SemesterSection semesterSection, DayPeriod dayPeriod, short teacherIndex, String subject) {
+    public boolean isAssignConflicting(SemesterSection semesterSection, DayPeriod dayPeriod, short teacherIndex, String subject, String roomCode) {
         Subject subjectObj = SubjectDao.getInstance().get(subject);
         boolean sectionFree = isSectionFree(semesterSection, dayPeriod);
         boolean teacherFree = isTeacherFree(dayPeriod, teacherIndex);
         boolean practicalLabFree = !subjectObj.isPractical() ||
-                isPracticalLabFree(dayPeriod, subjectObj.getRoomCode());
+                isPracticalLabFree(dayPeriod, roomCode);
         return sectionFree && teacherFree && practicalLabFree;
     }
 
-    public DayPeriod suggestPracticalDayPeriod(SemesterSection semesterSection, short[] teacherIndices, String subject) {
+    public PracticalTimeRoom suggestPracticalTimeRoom(SemesterSection semesterSection, short[] teacherIndices, String subject) {
         Subject sub = SubjectDao.getInstance().get(subject);
         if (!sub.isPractical()) throw new IllegalArgumentException(subject + " is not a practical subject");
 
-        ArrayList<DayPeriod> choices = new ArrayList<>();
+        ArrayList<PracticalTimeRoom> choices = new ArrayList<>();
 
-        //get starting period location
-        byte startPeriod = Util.getPracticalStartingPeriodLocation(subject);
+        //Get available room codes
+        ArrayList<String> availableRoomCodes = sub.getRoomCodes();
+
+        ArrayList<Byte> allocationPeriods = Util.getAllPracticalPeriodLocations(subject);
 
         //iterate through each day and check if allocation conflict free
-        for (byte day = 0; day < 5; day++) {
-            boolean valid = true;
-            PeriodCheckerLoop:
-            for (byte period = startPeriod; period < startPeriod + sub.getLectureCount(); period++) {
-                DayPeriod dayPeriod = new DayPeriod(day, period);
-                for (short teacherIndex : teacherIndices) {
-                    if (!isAssignConflicting(semesterSection, dayPeriod, teacherIndex, subject)) {
-                        valid = false;
-                        break PeriodCheckerLoop;
+        for (byte startPeriod: allocationPeriods) {
+            for (String roomCode : availableRoomCodes) {
+                for (byte day = 0; day < 5; day++) {
+                    boolean valid = true;
+                    PeriodCheckerLoop:
+                    for (byte period = startPeriod; period < startPeriod + sub.getLectureCount(); period++) {
+                        DayPeriod dayPeriod = new DayPeriod(day, period);
+                        for (short teacherIndex : teacherIndices) {
+                            if (!isAssignConflicting(semesterSection, dayPeriod, teacherIndex, subject, roomCode)) {
+                                valid = false;
+                                break PeriodCheckerLoop;
+                            }
+                        }
                     }
-                }
-            }
 
-            //if allocation possible, add the starting dayPeriod to choices
-            if (valid) choices.add(new DayPeriod(day, startPeriod));
+                    //if allocation possible, add the starting dayPeriod to choices
+                    if (valid) choices.add(new PracticalTimeRoom(roomCode, new DayPeriod(day, startPeriod)));
+                }
+                if (choices.size() > 0) break;
+            }
+            if (choices.size() > 0) break;
         }
-        if(choices.size() == 0) return new DayPeriod((byte) random.nextInt(5), startPeriod);
+
+        if(choices.size() == 0) return new PracticalTimeRoom(availableRoomCodes.get(0), new DayPeriod((byte) random.nextInt(5), allocationPeriods.get(0)));
         return choices.get(random.nextInt(choices.size()));
     }
 
@@ -235,7 +244,7 @@ public class ChromosomeAnalyzer {
         //if semesterSection isn't allocated
         for (int i = 0; i < values.length && dayPeriods.size() < sub.getLectureCount(); i++) {
             DayPeriod dayPeriod = new DayPeriod((short) values[i]);
-            if (isAssignConflicting(semesterSection, dayPeriod, teacherIndex, subject)) {
+            if (isAssignConflicting(semesterSection, dayPeriod, teacherIndex, subject, null)) {
                 dayPeriods.add(dayPeriod);
             }
         }
@@ -317,5 +326,15 @@ public class ChromosomeAnalyzer {
         public HashMap<String, HashSet<SemesterSection>> subjects = new HashMap<>();
         public short practicalCount = 0;
         public short theoryCount = 0;
+    }
+
+    public static class PracticalTimeRoom {
+        public String roomCode;
+        public DayPeriod time;
+
+        public PracticalTimeRoom(String roomCode, DayPeriod time) {
+            this.roomCode = roomCode;
+            this.time = time;
+        }
     }
 }

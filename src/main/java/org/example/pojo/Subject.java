@@ -2,7 +2,9 @@ package org.example.pojo;
 
 import com.fasterxml.jackson.annotation.*;
 
-@JsonPropertyOrder({"sem", "lectureCount", "isPractical", "roomCode"})
+import java.util.ArrayList;
+
+@JsonPropertyOrder({"sem", "lectureCount", "isPractical", "roomCodes"})
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public class Subject {
     @JsonAlias({"semester"})
@@ -10,14 +12,14 @@ public class Subject {
     private final int lectureCount;
     @JsonAlias({"practical"})
     private final boolean isPractical;
-    @JsonAlias({"room"})
-    private final String roomCode;
+    @JsonAlias({"room","roomCode"})
+    private final ArrayList<String> roomCodes;
 
-    public Subject(@JsonProperty("sem") int sem, @JsonProperty("lectureCount") int lectureCount, @JsonProperty("isPractical") boolean isPractical, @JsonProperty("roomCode") String roomCode) {
+    public Subject(@JsonProperty("sem") int sem, @JsonProperty("lectureCount") int lectureCount, @JsonProperty("isPractical") boolean isPractical, @JsonProperty("roomCodes") ArrayList<String> roomCodes) {
         this.sem = sem;
         this.lectureCount = lectureCount;
         this.isPractical = isPractical;
-        this.roomCode = roomCode;
+        this.roomCodes = roomCodes;
     }
 
     @JsonGetter("sem")
@@ -35,8 +37,8 @@ public class Subject {
         return isPractical;
     }
 
-    @JsonGetter("roomCode")
-    public String getRoomCode() {
-        return roomCode;
+    @JsonGetter("roomCodes")
+    public ArrayList<String> getRoomCodes() {
+        return roomCodes;
     }
 }

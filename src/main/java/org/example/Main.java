@@ -29,8 +29,8 @@ public class Main {
         String saveName = SavesHandler.getCurrentSave();
         if (saveName != null) SavesHandler.load(saveName);
 
-        /*JcefLauncher jcefLauncher = new JcefLauncher(ls.getDefaultURL());
-        jcefLauncher.launch();*/
+        //ChromosomeTest.startTest();
+
         try {
             Process p=Runtime.getRuntime().exec("java -jar TTSBrowserComponent.jar "+ls.getDefaultURL());
             p.waitFor();

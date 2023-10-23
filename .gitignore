@@ -16,11 +16,12 @@ build/
 ### JCEF files ###
 /jcef-bundle/
 
-### TTSBrowser jar
+### TTSBrowser files ###
 /TTSBrowserComponent.jar
-
-### TTSBrowser exe
 /TTSBrowserComponent.exe
+
+### Chromosome test file
+src/main/java/org/example/ChromosomeTest.java
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

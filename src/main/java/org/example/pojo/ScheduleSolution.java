@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ScheduleSolution {
 
-    //format: data[semester][section][day][period]=new String[]{"teacherName","subjectCode"}
+    //format: data[semester][section][day][period]=new String[]{"teacherName","subjectCode","roomCode"}
     private List<List<List<List<List<String>>>>> data;
     private static ScheduleSolution instance = null;
 
@@ -34,6 +34,7 @@ public class ScheduleSolution {
                     List<List<String>> dataPeriod = new ArrayList<>();
                     for (int l = 0; l < ss.getPeriodCount(); l++) {
                         List<String> dataSlot = new ArrayList<>();
+                        dataSlot.add(null);
                         dataSlot.add(null);
                         dataSlot.add(null);
                         dataPeriod.add(dataSlot);
@@ -69,7 +70,7 @@ public class ScheduleSolution {
         }
     }
 
-    public void parseChromo(Scanner sc, String[] subjects, String[] teachers) {
+    public void parseChromo(Scanner sc, String[] subjects, String[] teachers, String[] roomCodes) {
         this.resetData();
         SubjectDao subjectDao = SubjectDao.getInstance();
         HashMap<String, List<Short>> practicalPeriods = new HashMap<>();
@@ -85,8 +86,15 @@ public class ScheduleSolution {
                 String teacher = null;
                 short val = -1;
                 short value;
-                if (!practical) teacher = teachers[sc.nextShort()];
-                else val = sc.nextShort();
+                String roomCode;
+                if (!practical) {
+                    teacher = teachers[sc.nextShort()];
+                    roomCode = subjectDao.get(subject).getRoomCodes().get(0);
+                }
+                else {
+                    val = sc.nextShort();
+                    roomCode = roomCodes[sc.nextShort()];
+                }
                 int lectureCount = subjectDao.get(subject).getLectureCount();
 
                 for (int j = 0; j < lectureCount; j++) {
@@ -102,7 +110,7 @@ public class ScheduleSolution {
                         value = sc.nextShort();
                     }
                     DayPeriod dayPeriod = new DayPeriod(value);
-                    data.get(sem - 1).get(sec).get(dayPeriod.day).set(dayPeriod.period, Arrays.asList(teacher, subject));
+                    data.get(sem - 1).get(sec).get(dayPeriod.day).set(dayPeriod.period, Arrays.asList(teacher, subject, roomCode));
                 }
             }
             empty = false;
@@ -174,8 +182,9 @@ public class ScheduleSolution {
                 for (int k = 0; k < 5; k++) {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
                         if (data.get(i).get(j).get(k).get(l).get(1) != null && data.get(i).get(j).get(k).get(l).get(1).equals(code)) {
-                            data.get(i).get(j).get(k).get(l).set(1, null);
                             data.get(i).get(j).get(k).get(l).set(0, null);
+                            data.get(i).get(j).get(k).get(l).set(1, null);
+                            data.get(i).get(j).get(k).get(l).set(2, null);
                         }
                     }
                 }

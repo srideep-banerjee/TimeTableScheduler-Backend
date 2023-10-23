@@ -1,4 +1,4 @@
-package org.example.algorithms;
+package org.example.algorithms.io;
 
 import java.io.*;
 import java.util.Scanner;

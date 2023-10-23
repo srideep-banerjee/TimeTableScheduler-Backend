@@ -7,12 +7,15 @@ import org.example.pojo.Subject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class PreComputation {
     private String[] subjectCodeArray;
     private String[] teacherNameArray;
     private HashMap<String, Short> indexOfSubject;
     private ArrayList<Integer>[] teachersForSubjects;
+    private String[] practicalRoomCodeArray;
+    private  HashMap<String, Short> indexOfRoom;
     SubjectDao subjectDao = SubjectDao.getInstance();
     TeacherDao teacherDao = TeacherDao.getInstance();
 
@@ -21,6 +24,17 @@ public class PreComputation {
         this.teacherNameArray = teacherNameArray;
     }
     public void compute() {
+        //Update practical room code array
+        HashSet<String> roomCodes = new HashSet<>();
+        for(Subject subject: SubjectDao.getInstance().values()) {
+            roomCodes.addAll(subject.getRoomCodes());
+        }
+        this.practicalRoomCodeArray = roomCodes.toArray(String[]::new);
+        indexOfRoom = new HashMap<>();
+        for(short i = 0;i < practicalRoomCodeArray.length; i++) {
+            indexOfRoom.put(practicalRoomCodeArray[i], i);
+        }
+
         //Updating index of subjects
         this.indexOfSubject = new HashMap<>();
         for (short i = 0; i < subjectCodeArray.length; i++)
@@ -73,5 +87,13 @@ public class PreComputation {
 
     public HashMap<String, Short> getIndexOfSubject() {
         return indexOfSubject;
+    }
+
+    public String[] getPracticalRoomCodes() {
+        return practicalRoomCodeArray;
+    }
+
+    public HashMap<String, Short> getIndexOfRoom() {
+        return indexOfRoom;
     }
 }

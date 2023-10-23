@@ -4,6 +4,8 @@ import org.example.dao.SubjectDao;
 import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class Util {
@@ -48,6 +50,25 @@ public class Util {
             }
             res = i;
         }
+        return res;
+    }
+
+    public static ArrayList<Byte> getAllPracticalPeriodLocations(String subject) {
+        ArrayList<Byte> res = new ArrayList<>();
+        ScheduleStructure scheduleStructure = ScheduleStructure.getInstance();
+        short upperBound = scheduleStructure.getPeriodCount();
+        Subject sub = SubjectDao.getInstance().get(subject);
+        short trailingLength = (short) sub.getLectureCount();
+        byte[] exclude = scheduleStructure.getBreakLocations(sub.getSem());
+        byte excludeIndex = 0;
+        for (byte i = 0; i <= upperBound - trailingLength; i++) {
+            if (excludeIndex < exclude.length && exclude[excludeIndex] - 1 < i + trailingLength) {
+                i = (byte) (exclude[excludeIndex++] - 1);
+                continue;
+            }
+            res.add(i);
+        }
+        Collections.reverse(res);
         return res;
     }
 }

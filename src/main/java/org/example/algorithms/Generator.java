@@ -1,5 +1,6 @@
 package org.example.algorithms;
 
+import org.example.algorithms.io.PopulationStorage;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.interfaces.OnResultListener;
@@ -21,6 +22,8 @@ public class Generator {
     private int chromoLength = 0;
     private String[] subjectCodeArray = null;
     private String[] teacherNameArray = null;
+    private String[] practicalRoomCodeArray = null;
+    private HashMap<String, Short> indexOfRoom = null;
     private HashMap<String, Short> indexOfSubject = null;
     private ArrayList<Integer>[] teachersForSubjects = null;
     private PopulationStorage populationStorage;
@@ -75,7 +78,7 @@ public class Generator {
                 else {
                     System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
                     Scanner sc = populationStorage.getChromosomeReader(maxFitnessIndex);
-                    ScheduleSolution.getInstance().parseChromo(sc, subjectCodeArray, teacherNameArray);
+                    ScheduleSolution.getInstance().parseChromo(sc, subjectCodeArray, teacherNameArray, practicalRoomCodeArray);
                     onResultListener.onResult();
                 }
             } catch (IOException e) {
@@ -107,8 +110,13 @@ public class Generator {
 
         this.teachersForSubjects = preComputation.getTeachersForSubjects();
 
+        this.practicalRoomCodeArray = preComputation.getPracticalRoomCodes();
+
+        this.indexOfRoom = preComputation.getIndexOfRoom();
+
         System.out.println(Arrays.toString(subjectCodeArray));
         System.out.println(Arrays.toString(teacherNameArray));
+        System.out.println(Arrays.toString(practicalRoomCodeArray));
 
         for (int i = 0; i < teachersForSubjects.length; i++)
             if (teachersForSubjects[i].isEmpty()) {
@@ -122,7 +130,7 @@ public class Generator {
             Subject s = subjectDao.get(subject);
             int secCount = scheduleData.getSectionCount(s.getSem());
             int lectureCount = s.getLectureCount();
-            chromoLength += (lectureCount + 1) * secCount;
+            chromoLength += (lectureCount + (s.isPractical()?2:1)) * secCount;
         }
     }
 
@@ -168,12 +176,16 @@ public class Generator {
 //                        teachers[ind] = (short) (int) teachersForSubjects[i].get(randomIndices[ind]);
 //                    }
 
-                    DayPeriod dayPeriod = ca.suggestPracticalDayPeriod(semesterSection, teachers, subjectCodeArray[i]);
+                    ChromosomeAnalyzer.PracticalTimeRoom ptr = ca.suggestPracticalTimeRoom(semesterSection,teachers,subjectCodeArray[i]);
+
+                    DayPeriod dayPeriod = ptr.time;
                     ps.println(dayPeriod.getCompact());
+
+                    ps.println(indexOfRoom.get(ptr.roomCode));
 //                    byte period = getRandomExcludingTrailing(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sem), (short) lectureCount, random);
 //                    ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
 
-                    ca.assignPractical(semesterSection, dayPeriod, teachers, subjectCodeArray[i]);
+                    ca.assignPractical(semesterSection, dayPeriod, teachers, subjectCodeArray[i], ptr.roomCode);
                     for (int k = 0; k < lectureCount; k++) {
                         ps.println(teachers[k]);
 //                        short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
@@ -274,8 +286,10 @@ public class Generator {
                 short val = -1;
                 short value;
                 String teacher = null;
+                String roomCode = null;
                 if (sub.isPractical()) {
                     val = sc.nextShort();
+                    roomCode = practicalRoomCodeArray[sc.nextShort()];
                 } else {
                     teacherIndex = sc.nextShort();
                     teacher = teacherNameArray[teacherIndex];
@@ -298,14 +312,11 @@ public class Generator {
                     if (!teacherDao.get(teacher).getFreeTime().contains(new int[]{day, period}) && !teacherDao.get(teacher).getFreeTime().isEmpty())
                         count++;
 
-                    //processing h3
-                    String key = String.format("%s,%d", subject, section);
-                    /*if (!h3.containsKey(key)) h3.put(key, 1);
-                    else h3.put(key, h3.get(key) + 1);*/
+                    String key;
 
                     //evaluating h4
                     if (subjectDao.get(subject).isPractical()) {
-                        key = String.format("%d,%d,%s", day, period, subjectDao.get(subject).getRoomCode());
+                        key = String.format("%d,%d,%s", day, period, roomCode);
                         if (h4.contains(key)) count++;
                         else h4.add(key);
                     }
@@ -346,16 +357,6 @@ public class Generator {
 
         sc.close();
 
-        //evaluating h3
-        /*for (String subject : subjectCodeArray) {
-            if (stopped) break;
-            for (int i = 1; i <= scheduleData.getSectionCount(subjectDao.get(subject).getSem()); i++) {
-                if (!h3.containsKey(String.format("%s,%d", subject, i)))
-                    count += subjectDao.get(subject).getLectureCount();
-                else
-                    count += Math.abs(subjectDao.get(subject).getLectureCount() - h3.get(String.format("%s,%d", subject, i)));
-            }
-        }*/
 
         //evaluating h8, h9, h12 and h13
         for (var entries : h89.entrySet()) {
@@ -469,6 +470,16 @@ public class Generator {
                                     ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
                                 } else {
                                     ps.println(random.nextBoolean() ? val1 : val2);
+                                }
+
+                                short room1 = sc1.nextShort();
+                                short room2 = sc2.nextShort();
+                                if (mutate) {
+                                    ArrayList<String> roomCodes = sub.getRoomCodes();
+                                    String roomCode = roomCodes.get(random.nextInt(roomCodes.size()));
+                                    ps.println(indexOfRoom.get(roomCode));
+                                } else {
+                                    ps.println(random.nextBoolean() ? room1 : room2);
                                 }
                             } else {
                                 teacher1 = sc1.nextShort();
