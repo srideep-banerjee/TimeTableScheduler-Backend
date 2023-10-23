@@ -13,11 +13,11 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Generator {
-    private final int populationSize = 100;
-    private final int tournamentSize = 5;
+    private final int populationSize = 400;
+    private final int tournamentSize = 10;
     private final float crossoverRate = 0.98f;
-    private final float mutationRate = 0.05f;
-    private final int stagnantTerminationCount = 50;
+    private final float mutationRate = 0.01f;
+    private final int stagnantTerminationCount = 100;
     private final int threadCount=4;
     private int chromoLength = 0;
     private String[] subjectCodeArray = null;
