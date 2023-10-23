@@ -17,7 +17,7 @@ public class Generator {
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;
     private final int stagnantTerminationCount = 50;
-    private final int threadCount=1;
+    private final int threadCount=4;
     private int chromoLength = 0;
     private String[] subjectCodeArray = null;
     private String[] teacherNameArray = null;
@@ -150,7 +150,7 @@ public class Generator {
         PrintStream ps = populationStorage.getChromosomeWriter(index);
         Random random = new Random();
 
-        ChromosomeAnalyzer ca = new ChromosomeAnalyzer(subjectCodeArray, teacherNameArray);
+        ChromosomeAnalyzer ca = new ChromosomeAnalyzer(subjectCodeArray, teacherNameArray, teachersForSubjects);
 
         for (int i = 0; i < subjectCodeArray.length; i++) {
             byte sem = (byte) subjectDao.get(subjectCodeArray[i]).getSem();
@@ -160,11 +160,13 @@ public class Generator {
                 boolean practical = subjectDao.get(subjectCodeArray[i]).isPractical();
                 if (practical) {
                     //Select distinct random teachers
-                    short[] teachers = new short[lectureCount];
-                    int[] randomIndices = Util.shuffle(teachersForSubjects[i].size());
-                    for (short ind = 0; ind < teachers.length; ind++) {
-                        teachers[ind] = (short) (int) teachersForSubjects[i].get(randomIndices[ind]);
-                    }
+                    ArrayList<Short> teacherList = ca.suggestPracticalTeachers(semesterSection, (short) i);//new short[lectureCount];
+                    short[] teachers = new short[teacherList.size()];
+                    for (int ind = 0; ind < teachers.length; ind++) teachers[ind] = teacherList.get(ind);
+//                    int[] randomIndices = Util.shuffle(teachersForSubjects[i].size());
+//                    for (short ind = 0; ind < teachers.length; ind++) {
+//                        teachers[ind] = (short) (int) teachersForSubjects[i].get(randomIndices[ind]);
+//                    }
 
                     DayPeriod dayPeriod = ca.suggestPracticalDayPeriod(semesterSection, teachers, subjectCodeArray[i]);
                     ps.println(dayPeriod.getCompact());

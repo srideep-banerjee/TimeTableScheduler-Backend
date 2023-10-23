@@ -11,6 +11,7 @@ import java.util.*;
 public class ChromosomeAnalyzer {
     private final String[] subjectCodeArray;
     private final String[] teacherNameArray;
+    private final ArrayList<Integer>[] teachersForSubjects;
     private boolean stopped;
     private final Random random;
 
@@ -18,16 +19,19 @@ public class ChromosomeAnalyzer {
     HashMap<SemesterSection, HashMap<DayPeriod, HashMap<String, Short>>> sectionConflictTable;//value = {subject code:count}
     HashMap<TeacherTimeSlot, SemesterSection> teacherTimeAllocationTable;
     HashMap<TeacherTimeSlot, HashMap<SemesterSection, Short>> teacherTimeConflictTable;//value = {semester-section:count}
+    HashMap<Short, TeacherSubjectsData> teacherSubjectAllocationTable;//key = teacher index
     HashMap<String, HashSet<DayPeriod>> practicalLabAllocationTable;
 
-    public ChromosomeAnalyzer(String[] subjectCodeArray, String[] teacherNameArray) {
+    public ChromosomeAnalyzer(String[] subjectCodeArray, String[] teacherNameArray, ArrayList<Integer>[] teachersForSubjects) {
         this.subjectCodeArray = subjectCodeArray;
         this.teacherNameArray = teacherNameArray;
+        this.teachersForSubjects = teachersForSubjects;
 
         sectionAllocationTable = new HashMap<>();
         sectionConflictTable = new HashMap<>();
         teacherTimeAllocationTable = new HashMap<>();
         teacherTimeConflictTable = new HashMap<>();
+        teacherSubjectAllocationTable = new HashMap<>();
         practicalLabAllocationTable = new HashMap<>();
 
         this.random = new Random();
@@ -115,6 +119,14 @@ public class ChromosomeAnalyzer {
         if (teacherFree) {
             teacherTimeAllocationTable.put(new TeacherTimeSlot(dayPeriod, teacherIndex), semesterSection);
         }
+
+        TeacherSubjectsData tsd = teacherSubjectAllocationTable.computeIfAbsent(teacherIndex, k -> new TeacherSubjectsData());
+        HashSet<SemesterSection> subjects = tsd.subjects.computeIfAbsent(subject, k -> new HashSet<>());
+        if (!subjects.contains(semesterSection)) {
+            subjects.add(semesterSection);
+            tsd.theoryCount++;
+        }
+
 //        if (!sectionFree) {
 //            HashMap<DayPeriod, HashMap<String, Short>> hm1 = sectionConflictTable.computeIfAbsent(semesterSection, k -> new HashMap<>());
 //            HashMap<String, Short> dayPeriodConflicts = hm1.computeIfAbsent(dayPeriod, k -> new HashMap<>());
@@ -161,7 +173,15 @@ public class ChromosomeAnalyzer {
             //check if practical lab free during period
             if(isPracticalLabFree(dayPeriod, subjectObj.getRoomCode()))
                 labAllocDayPeriods.add(dayPeriod);
+        }
 
+        for (short teacherIndex: teacherIndices) {
+            TeacherSubjectsData tsd = teacherSubjectAllocationTable.computeIfAbsent(teacherIndex, k -> new TeacherSubjectsData());
+            HashSet<SemesterSection> subjects = tsd.subjects.computeIfAbsent(subject, k -> new HashSet<>());
+            if (!subjects.contains(semesterSection)) {
+                subjects.add(semesterSection);
+                tsd.practicalCount++;
+            }
         }
     }
 
@@ -225,6 +245,52 @@ public class ChromosomeAnalyzer {
         return dayPeriods;
     }
 
+    public ArrayList<Short> suggestPracticalTeachers(SemesterSection semesterSection, short subjectIndex) {
+        String subject = subjectCodeArray[subjectIndex];
+        Subject sub = SubjectDao.getInstance().get(subject);
+        TeacherDao teacherDao =TeacherDao.getInstance();
+
+        if (!sub.isPractical()) throw new IllegalArgumentException(subject + " is not a practical subject");
+
+        ArrayList<Integer> availableTeachers = teachersForSubjects[subjectIndex];
+        ArrayList<Short> res = new ArrayList<>();
+
+        //if practical subject doesn't have a theory
+        String theoryEquivalent = SubjectDao.getInstance().getTheoryOfPractical(subject);
+        if (theoryEquivalent == null) {
+            for (int selected: Util.shuffle(availableTeachers.size())) {
+                res.add((short) (int) availableTeachers.get(selected));
+                if(res.size() == sub.getLectureCount()) break;
+            }
+            return res;
+        }
+
+        //get list of teachers who teach both theory and practical of the subject
+        HashSet<Integer> practicalAndTheoryTeachers = new HashSet<>();
+        for(int teacherIndex: availableTeachers) {
+            if(teacherDao.get(teacherNameArray[teacherIndex]).getSubjects().contains(theoryEquivalent)) {
+                practicalAndTheoryTeachers.add(teacherIndex);
+            }
+        }
+
+        boolean theoryTeacherAdded = false;
+        int[] shuffledIndices = Util.shuffle(availableTeachers.size());
+        for (int randomIndex: shuffledIndices) {
+            int teacherIndex = availableTeachers.get(randomIndex);
+            if (practicalAndTheoryTeachers.contains(teacherIndex)) {
+                theoryTeacherAdded = true;
+                res.add((short) teacherIndex);
+            } else if (theoryTeacherAdded) {
+                res.add((short) teacherIndex);
+            } else if (res.size() != sub.getLectureCount() - 1){
+                res.add((short) teacherIndex);
+            }
+            if (res.size() == sub.getLectureCount()) break;
+        }
+
+        return res;
+    }
+
     public static class TeacherTimeSlot {
         public final DayPeriod dayPeriod;
         public final short teacherIndex;
@@ -245,5 +311,11 @@ public class ChromosomeAnalyzer {
         public int hashCode() {
             return Objects.hash(dayPeriod, teacherIndex);
         }
+    }
+
+    public static class TeacherSubjectsData {
+        public HashMap<String, HashSet<SemesterSection>> subjects = new HashMap<>();
+        public short practicalCount = 0;
+        public short theoryCount = 0;
     }
 }
