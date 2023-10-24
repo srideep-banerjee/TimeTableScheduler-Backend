@@ -276,20 +276,37 @@ public class ChromosomeAnalyzer {
 
         //get list of teachers who teach both theory and practical of the subject
         HashSet<Integer> practicalAndTheoryTeachers = new HashSet<>();
-        for(int teacherIndex: availableTeachers) {
+        short availableTheoryTeachersCount = 0;
+        HashSet<Integer> practicalOnlyTeachers = new HashSet<>();
+        short availablePracticalOnlyTeachersCount = 0;
+
+        boolean theoryTeacherAdded = false;
+
+        int[] shuffledIndices = Util.shuffle(availableTeachers.size());
+        for(int randomIndex: shuffledIndices) {
+            int teacherIndex = availableTeachers.get(randomIndex);
+            TeacherSubjectsData tsd = teacherSubjectAllocationTable.computeIfAbsent((short) teacherIndex, k -> new TeacherSubjectsData());
             if(teacherDao.get(teacherNameArray[teacherIndex]).getSubjects().contains(theoryEquivalent)) {
                 practicalAndTheoryTeachers.add(teacherIndex);
+                if(tsd.practicalCount < 3 && !tsd.subjects.containsKey(subject)) {
+                    availableTheoryTeachersCount++;
+                    theoryTeacherAdded = true;
+                    res.add((short) teacherIndex);
+                } else if(tsd.practicalCount < 3) {
+                    availableTheoryTeachersCount++;
+                }
+            } else {
+                practicalOnlyTeachers.add(teacherIndex);
+                if(tsd.practicalCount < 3) availablePracticalOnlyTeachersCount++;
             }
         }
 
-        boolean theoryTeacherAdded = false;
-        int[] shuffledIndices = Util.shuffle(availableTeachers.size());
         for (int randomIndex: shuffledIndices) {
             int teacherIndex = availableTeachers.get(randomIndex);
-            if (practicalAndTheoryTeachers.contains(teacherIndex)) {
+            if (practicalAndTheoryTeachers.contains(teacherIndex) && !theoryTeacherAdded) {
                 theoryTeacherAdded = true;
                 res.add((short) teacherIndex);
-            } else if (theoryTeacherAdded) {
+            } else if (theoryTeacherAdded && practicalOnlyTeachers.contains(teacherIndex)) {
                 res.add((short) teacherIndex);
             } else if (res.size() != sub.getLectureCount() - 1){
                 res.add((short) teacherIndex);
@@ -298,6 +315,23 @@ public class ChromosomeAnalyzer {
         }
 
         return res;
+    }
+
+    public Short suggestTheoryTeacher(SemesterSection semesterSection, short subjectIndex) {
+        ArrayList<Integer> availableTeachers = teachersForSubjects[subjectIndex];
+        int[] randomizedIndices = Util.shuffle(availableTeachers.size());
+        String practicalEquivalent = SubjectDao.getInstance().getPracticalOfTheory(subjectCodeArray[subjectIndex]);
+        if(practicalEquivalent == null) {
+            return availableTeachers.get(random.nextInt(availableTeachers.size())).shortValue();
+        }
+        for(int randomIndex: randomizedIndices) {
+            short teacherIndex = availableTeachers.get(randomIndex).shortValue();
+            TeacherSubjectsData tsd = teacherSubjectAllocationTable.computeIfAbsent(teacherIndex, k -> new TeacherSubjectsData());
+            if (tsd.subjects.computeIfAbsent(practicalEquivalent, k -> new HashSet<>()).contains(semesterSection)) {
+                return teacherIndex;
+            }
+        }
+        return availableTeachers.get(random.nextInt(availableTeachers.size())).shortValue();
     }
 
     public static class TeacherTimeSlot {

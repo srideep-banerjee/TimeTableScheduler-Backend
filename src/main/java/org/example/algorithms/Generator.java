@@ -14,9 +14,9 @@ import java.util.*;
 
 public class Generator {
     private final int populationSize = 400;
-    private final int tournamentSize = 10;
+    private final int tournamentSize = 5;
     private final float crossoverRate = 0.98f;
-    private final float mutationRate = 0.01f;
+    private final float mutationRate = 0.05f;
     private final int stagnantTerminationCount = 100;
     private final int threadCount=4;
     private int chromoLength = 0;
@@ -192,7 +192,7 @@ public class Generator {
 //                        ps.println(teacher);
                     }
                 } else {
-                    short teacher = teachersForSubjects[i].get(random.nextInt(teachersForSubjects[i].size())).shortValue();
+                    short teacher = ca.suggestTheoryTeacher(semesterSection, (short) i);
                     ps.println(teacher);
 
                     ArrayList<DayPeriod> dayPeriods = ca.suggestTheoryDayPeriod(semesterSection, teacher, subjectCodeArray[i]);
