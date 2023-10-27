@@ -167,7 +167,13 @@ public class ScheduleSolution {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
                         if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name)) {
                             String subject = data.get(i).get(j).get(k).get(l).get(1);
-                            sch[k][l] = new String[]{String.valueOf(SubjectDao.getInstance().get(subject).getSem()), String.valueOf(j), subject};
+                            String roomCode = data.get(i).get(j).get(k).get(l).get(2);
+                            sch[k][l] = new String[]{
+                                    String.valueOf(SubjectDao.getInstance().get(subject).getSem()),
+                                    String.valueOf(j),
+                                    subject,
+                                    roomCode
+                            };
                         }
                     }
                 }
