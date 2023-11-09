@@ -37,8 +37,9 @@ public class PreComputation {
 
         //Updating index of subjects
         this.indexOfSubject = new HashMap<>();
-        for (short i = 0; i < subjectCodeArray.length; i++)
+        for (short i = 0; i < subjectCodeArray.length; i++){
             indexOfSubject.put(subjectCodeArray[i], i);
+            System.out.println(subjectCodeArray[i]+" -> "+ subjectDao.get(subjectCodeArray[i]).getRoomCodes());}
 
         //Updating teachers for subjects
         this.teachersForSubjects = new ArrayList[subjectCodeArray.length];
@@ -50,19 +51,25 @@ public class PreComputation {
             for (String code : teacherDao.get(teacherNameArray[i]).getSubjects())
                 if (subjectDao.containsKey(code))
                     teachersForSubjects[indexOfSubject.get(code)].add(i);
+        //Sort subjectCodeArray according to number of available teachers
+        Arrays.sort(subjectCodeArray, (a,b) ->
+                teachersForSubjects[indexOfSubject.get(a)].size() - teachersForSubjects[indexOfSubject.get(b)].size());
+        System.out.println("After 1 "+Arrays.toString(subjectCodeArray));
 
-        //Sort subjectCodeArray to shift practical subjects to the front or lesser teacher count subjects to the front
+        //Sort subjectCodeArray according to number of available rooms
+        Arrays.sort(subjectCodeArray,
+                (a,b) -> subjectDao.get(a).getRoomCodes().size() - subjectDao.get(b).getRoomCodes().size());
+        System.out.println("After 2 "+Arrays.toString(subjectCodeArray));
+
+        //Move practical subjects to the beginning
         Arrays.sort(subjectCodeArray, (a,b)->{
-            Subject subA = subjectDao.get(a);
-            Subject subB = subjectDao.get(b);
-            int teacherCountA = teachersForSubjects[indexOfSubject.get(a)].size();
-            int teacherCountB = teachersForSubjects[indexOfSubject.get(b)].size();
-            if(subA.isPractical() == subB.isPractical()) {
-                return teacherCountA - teacherCountB;
-            } else if (subA.isPractical()) {
-                return -1;
-            } else return 1;
+            boolean aPractical = subjectDao.get(a).isPractical();
+            boolean bPractical = subjectDao.get(b).isPractical();
+            if (aPractical == bPractical) return 0;
+            else if (aPractical) return -1;
+            else return 1;
         });
+        System.out.println("After 3 "+Arrays.toString(subjectCodeArray));
 
         //Update new indices
         for (short i = 0; i < subjectCodeArray.length; i++) {
