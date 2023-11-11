@@ -37,9 +37,8 @@ public class PreComputation {
 
         //Updating index of subjects
         this.indexOfSubject = new HashMap<>();
-        for (short i = 0; i < subjectCodeArray.length; i++){
+        for (short i = 0; i < subjectCodeArray.length; i++)
             indexOfSubject.put(subjectCodeArray[i], i);
-            System.out.println(subjectCodeArray[i]+" -> "+ subjectDao.get(subjectCodeArray[i]).getRoomCodes());}
 
         //Updating teachers for subjects
         this.teachersForSubjects = new ArrayList[subjectCodeArray.length];
@@ -54,12 +53,10 @@ public class PreComputation {
         //Sort subjectCodeArray according to number of available teachers
         Arrays.sort(subjectCodeArray, (a,b) ->
                 teachersForSubjects[indexOfSubject.get(a)].size() - teachersForSubjects[indexOfSubject.get(b)].size());
-        System.out.println("After 1 "+Arrays.toString(subjectCodeArray));
 
         //Sort subjectCodeArray according to number of available rooms
         Arrays.sort(subjectCodeArray,
                 (a,b) -> subjectDao.get(a).getRoomCodes().size() - subjectDao.get(b).getRoomCodes().size());
-        System.out.println("After 2 "+Arrays.toString(subjectCodeArray));
 
         //Move practical subjects to the beginning
         Arrays.sort(subjectCodeArray, (a,b)->{
@@ -69,7 +66,6 @@ public class PreComputation {
             else if (aPractical) return -1;
             else return 1;
         });
-        System.out.println("After 3 "+Arrays.toString(subjectCodeArray));
 
         //Update new indices
         for (short i = 0; i < subjectCodeArray.length; i++) {
