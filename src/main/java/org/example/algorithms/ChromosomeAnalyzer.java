@@ -185,7 +185,7 @@ public class ChromosomeAnalyzer {
         }
     }
 
-    public boolean isAssignConflicting(SemesterSection semesterSection, DayPeriod dayPeriod, short teacherIndex, String subject, String roomCode) {
+    public boolean isAssignNonConflicting(SemesterSection semesterSection, DayPeriod dayPeriod, short teacherIndex, String subject, String roomCode) {
         Subject subjectObj = SubjectDao.getInstance().get(subject);
         boolean sectionFree = isSectionFree(semesterSection, dayPeriod);
         boolean teacherFree = isTeacherFree(dayPeriod, teacherIndex);
@@ -214,7 +214,7 @@ public class ChromosomeAnalyzer {
                     for (byte period = startPeriod; period < startPeriod + sub.getLectureCount(); period++) {
                         DayPeriod dayPeriod = new DayPeriod(day, period);
                         for (short teacherIndex : teacherIndices) {
-                            if (!isAssignConflicting(semesterSection, dayPeriod, teacherIndex, subject, roomCode)) {
+                            if (!isAssignNonConflicting(semesterSection, dayPeriod, teacherIndex, subject, roomCode)) {
                                 valid = false;
                                 break PeriodCheckerLoop;
                             }
@@ -244,7 +244,7 @@ public class ChromosomeAnalyzer {
         //if semesterSection isn't allocated
         for (int i = 0; i < values.length && dayPeriods.size() < sub.getLectureCount(); i++) {
             DayPeriod dayPeriod = new DayPeriod((short) values[i]);
-            if (isAssignConflicting(semesterSection, dayPeriod, teacherIndex, subject, null)) {
+            if (isAssignNonConflicting(semesterSection, dayPeriod, teacherIndex, subject, null)) {
                 dayPeriods.add(dayPeriod);
             }
         }
@@ -262,19 +262,19 @@ public class ChromosomeAnalyzer {
         if (!sub.isPractical()) throw new IllegalArgumentException(subject + " is not a practical subject");
 
         ArrayList<Integer> availableTeachers = teachersForSubjects[subjectIndex];
-        ArrayList<Short> res = new ArrayList<>();
+        HashSet<Short> res = new HashSet<>();
 
         //if practical subject doesn't have a theory
         String theoryEquivalent = SubjectDao.getInstance().getTheoryOfPractical(subject);
         if (theoryEquivalent == null) {
             for (int selected: Util.shuffle(availableTeachers.size())) {
-                res.add((short) (int) availableTeachers.get(selected));
+                res.add(availableTeachers.get(selected).shortValue());
                 if(res.size() == sub.getLectureCount()) break;
             }
-            return res;
+            return new ArrayList<>(res);
         }
 
-        //get list of teachers who teach both theory and practical of the subject
+        //get set of teachers who teach both theory and practical of the subject
         HashSet<Integer> practicalAndTheoryTeachers = new HashSet<>();
         short availableTheoryTeachersCount = 0;
         HashSet<Integer> practicalOnlyTeachers = new HashSet<>();
@@ -288,7 +288,7 @@ public class ChromosomeAnalyzer {
             TeacherSubjectsData tsd = teacherSubjectAllocationTable.computeIfAbsent((short) teacherIndex, k -> new TeacherSubjectsData());
             if(teacherDao.get(teacherNameArray[teacherIndex]).getSubjects().contains(theoryEquivalent)) {
                 practicalAndTheoryTeachers.add(teacherIndex);
-                if(tsd.practicalCount < 3 && !tsd.subjects.containsKey(subject)) {
+                if(tsd.practicalCount < 3 && !tsd.subjects.containsKey(subject) && !theoryTeacherAdded) {
                     availableTheoryTeachersCount++;
                     theoryTeacherAdded = true;
                     res.add((short) teacherIndex);
@@ -314,7 +314,7 @@ public class ChromosomeAnalyzer {
             if (res.size() == sub.getLectureCount()) break;
         }
 
-        return res;
+        return new ArrayList<>(res);
     }
 
     public Short suggestTheoryTeacher(SemesterSection semesterSection, short subjectIndex) {
