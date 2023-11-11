@@ -17,7 +17,7 @@ public class Generator {
     private final int tournamentSize = 5;
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;
-    private final int stagnantTerminationCount = 100;
+    private final int stagnantTerminationCount = 75;
     private final int threadCount=4;
     private int chromoLength = 0;
     private String[] subjectCodeArray = null;
@@ -58,7 +58,7 @@ public class Generator {
                 int stagnantCount = 0;
                 calculateFitness();
                 System.out.print("\rGeneration:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
-                while (maxFitness != 1 && stagnantCount <= stagnantTerminationCount && !stopped) {
+                while (maxFitness < 1 && stagnantCount <= stagnantTerminationCount && !stopped) {
                     if(maxFitness == prevMaxFitness) stagnantCount++;
                     else stagnantCount = 0;
                     prevMaxFitness = maxFitness;
@@ -224,7 +224,9 @@ public class Generator {
 
                 for (int i = index; i < (index+populationPerThread) && !stopped; i++) {
                     try {
-                        fitness[i] = 1f / (1f + countHardConstraintViolation(i));
+                        int[] violationCount = countConstraintViolation(i);
+                        fitness[i] = 1f / (1f + violationCount[0]);
+                        if (fitness[i] >= 1f) fitness[i] += 1f / (1f + violationCount[1]);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -243,19 +245,13 @@ public class Generator {
                 maxFitness=fitness[maxFitnessIndex];
             }
         }
-        /*for (int i = 0; i < populationSize && !stopped; i++) {
-            fitness[i] = 1f / (1f + countHardConstraintViolation(i));
-            sum += fitness[i];
-            if (fitness[i] > maxFitness) {
-                maxFitness = fitness[i];
-                maxFitnessIndex = i;
-            }
-        }*/
+
         averageFitness = sum / populationSize;
     }
 
-    private int countHardConstraintViolation(int index) throws IOException {
-        int count = 0;
+    private int[] countConstraintViolation(int index) throws IOException {
+        int hCount = 0;
+        int sCount = 0;
 
         //HashMap<String, Integer> h3 = new HashMap<>();
 
@@ -310,14 +306,14 @@ public class Generator {
 
                     //evaluating h2
                     if (!teacherDao.get(teacher).getFreeTime().contains(new int[]{day, period}) && !teacherDao.get(teacher).getFreeTime().isEmpty())
-                        count++;
+                        hCount++;
 
                     String key;
 
                     //evaluating h4
                     if (subjectDao.get(subject).isPractical()) {
                         key = String.format("%d,%d,%s", day, period, roomCode);
-                        if (h4.contains(key)) count++;
+                        if (h4.contains(key)) hCount++;
                         else h4.add(key);
                     }
 
@@ -330,15 +326,15 @@ public class Generator {
 
                     //evaluating h6
                     key = String.format("%d,%d,%d,%d", day, period, semester, section);
-                    if (h6.contains(key)) count++;
+                    if (h6.contains(key)) hCount++;
                     else h6.add(key);
 
                     //evaluating h7
                     key = String.format("%d,%d,%d", teacherIndex, day, period);
-                    if (h7.contains(key)) count++;
+                    if (h7.contains(key)) hCount++;
                     else h7.add(key);
 
-                    //processing h8, h9, h12 and h13
+                    //processing h8, h9, h12, h13 and s1
                     if (subjectDao.get(subject).isPractical()) {
                         key = String.format("%d,%s", section, subject);
                         if (!h89.containsKey(key))
@@ -376,33 +372,39 @@ public class Generator {
             for (short[] slot : slots) sum += Math.abs(slot[0] - mean);
             count += Math.round(sum);*/
 
+            slots.sort(Comparator.comparingInt(a -> a[1]));
+
             //evaluating h8
-            /*slots.sort(Comparator.comparingInt(a -> a[1]));
+            /*
             for (byte i = 1; i < slots.size(); i++)
                 if (slots.get(i)[1] - 1 != slots.get(i - 1)[1]) count++;*/
 
             for (short[] slot : slots) teachers.add(slot[2]);
 
             //evaluating h12
-            if (hasTheory && !teachers.contains(h5.get(key.substring(0, key.indexOf(',')) + "," + sb))) count++;
+            if (hasTheory && !teachers.contains(h5.get(key.substring(0, key.indexOf(',')) + "," + sb))) hCount++;
 
             //evaluating h9
             for (Short teacherIndex : teachers) {
                 for (short[] slot : slots) {
                     if (slot[2] == teacherIndex) continue;
-                    if (h7.contains(String.format("%d,%d,%d", teacherIndex, slot[0], slot[1]))) count++;
+                    if (h7.contains(String.format("%d,%d,%d", teacherIndex, slot[0], slot[1]))) hCount++;
                 }
             }
 
             //evaluating h13
-            count += Math.abs(slots.size() - teachers.size());
+            hCount += Math.abs(slots.size() - teachers.size());
+
+            //evaluating s1
+            if(slots.get(0)[1] != Util.getPracticalStartingPeriodLocation(key.substring(key.indexOf(',') + 1)))
+                sCount++;
         }
 
         //evaluating h10
         for (boolean b : h10)
-            if (!b) count++;
+            if (!b) hCount++;
 
-        return count;
+        return new int[]{hCount, sCount};
     }
 
     private void selectParents() {
