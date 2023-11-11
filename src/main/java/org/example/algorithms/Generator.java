@@ -599,19 +599,6 @@ public class Generator {
         return random;
     }
 
-    public byte getRandomExcludingTrailing(short upperBound, byte[] exclude, short trailingLength, Random rand) {
-        ArrayList<Byte> available = new ArrayList<>();
-        byte excludeIndex = 0;
-        for (byte i = 0; i <= upperBound - trailingLength; i++) {
-            if (excludeIndex < exclude.length && exclude[excludeIndex] - 1 < i + trailingLength) {
-                i = (byte) (exclude[excludeIndex++] - 1);
-                continue;
-            }
-            available.add(i);
-        }
-        return available.get(available.size() - 1);
-    }
-
     public void waitForAllThreads(){
         for(int i=0;i<threadCount;i++){
             while(!geneticThreads.get(i).isCompleted());
