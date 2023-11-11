@@ -28,16 +28,19 @@ public class Main {
 
         String saveName = SavesHandler.getCurrentSave();
         if (saveName != null) SavesHandler.load(saveName);
+        //new ChromosomeAnalyzerTest().test();
 
         //ChromosomeTest.startTest();
 
         try {
-            Process p=Runtime.getRuntime().exec("java -jar TTSBrowserComponent.jar "+ls.getDefaultURL());
+            ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL());
+            Process p= processBuilder.start();
             p.waitFor();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         System.out.println("Process exited");
+        ls.stop();
         System.exit(0);
     }
 }
