@@ -9,14 +9,13 @@ import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.*;
 
 public class SavesHandler {
-    private static String currentSave = null;
 
     public static String save(String name) {
         if (name.equals("null")) return "Can't use name '" + name + "'";
@@ -41,8 +40,7 @@ public class SavesHandler {
         } catch (IOException e) {
             return "An error occurred while writing saved file";
         }
-        currentSave = name;
-        if (!updateCurrentSaveName()) return "Can't update file currently loaded name";
+        if (!updateCurrentSaveName(name)) return "Can't update file currently loaded name";
         return null;
     }
 
@@ -90,27 +88,47 @@ public class SavesHandler {
             e.printStackTrace();
             return "An error occurred while reading saved file";
         }
-        currentSave = name;
-        if (!updateCurrentSaveName()) return "Can't update file currently loaded name";
+        if (!updateCurrentSaveName(name)) return "Can't update file currently loaded name";
         return null;
     }
 
     public static String getCurrentSave() {
         File currentSaveName = new File("Saves" + File.separator + "Currently saved.txt");
-        if (!currentSaveName.exists()) return null;
+
+        if (!currentSaveName.exists()) {
+            return rectifyCurrentSaved();
+        }
         try (Scanner sc = new Scanner(currentSaveName)) {
-            return sc.nextLine();
+            //if the current save doesn't exist, then rectify the current save file
+            String saveName = sc.nextLine();
+            if (Arrays.stream(getSaveList()).noneMatch(s -> s.equalsIgnoreCase(saveName)))
+                return rectifyCurrentSaved();
+            return saveName;
         } catch (FileNotFoundException e) {
             return null;
         }
     }
 
-    private static boolean updateCurrentSaveName() {
+    private static String rectifyCurrentSaved() {
+        System.out.println("Rectifying Current saved");
+        String[] saveList = getSaveList();
+
+        if (saveList.length == 0) {
+            save("UNTITLED");
+            return "UNTITLED";
+        }
+        else {
+            updateCurrentSaveName(saveList[0]);
+            return saveList[0];
+        }
+    }
+
+    private static boolean updateCurrentSaveName(String name) {
         File currentSaveName = new File("Saves" + File.separator + "Currently saved.txt");
         try {
             if (!currentSaveName.exists() && !currentSaveName.createNewFile()) return false;
             try (PrintStream ps = new PrintStream(currentSaveName)) {
-                ps.println(currentSave);
+                ps.println(name);
             }
         } catch (IOException e) {
             return false;
