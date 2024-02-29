@@ -19,7 +19,7 @@ public class Main {
 
         try {
             ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL());
-            Process p= processBuilder.start();var l=p.getErrorStream();
+            Process p= processBuilder.start();
             p.waitFor();
             System.out.println("Process exited with code "+p.exitValue());
         } catch (IOException | InterruptedException e) {
