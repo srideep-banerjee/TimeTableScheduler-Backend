@@ -24,14 +24,12 @@ import java.util.regex.Pattern;
 
 public class ApiHandler implements HttpHandler {
     HttpServer server;
-    ApiActionHelper apiActionHelper;
     ObjectMapper objectMapper;
     Generator generator;
 
 
     public ApiHandler(HttpServer server) {
         this.server = server;
-        apiActionHelper = ApiActionHelper.getInstance();
         objectMapper = new ObjectMapper();
         generator = new Generator(null);
     }
@@ -39,7 +37,6 @@ public class ApiHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) {
         //try{
-        apiActionHelper.performAction("heart beat received");
         String path = exchange.getRequestURI().getPath();
         String requestMethod = exchange.getRequestMethod();
         String querys = exchange.getRequestURI().getQuery();
