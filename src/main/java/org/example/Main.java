@@ -18,7 +18,7 @@ public class Main {
         //ChromosomeTest.startTest();
 
         try {
-            ProcessBuilder processBuilder =new ProcessBuilder("ShortJRE\\bin\\java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL());
+            ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL());
             Process p= processBuilder.start();var l=p.getErrorStream();
             p.waitFor();
             System.out.println("Process exited with code "+p.exitValue());
