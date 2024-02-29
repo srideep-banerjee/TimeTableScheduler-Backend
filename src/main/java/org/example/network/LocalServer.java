@@ -2,7 +2,6 @@ package org.example.network;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import org.example.files.FileIterator;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -10,7 +9,7 @@ import java.net.URLConnection;
 import java.util.Random;
 
 public class LocalServer {
-    private final String homeHtml = "Dashboard.html";
+    private final String homeHtml = "index.html";
     private HttpServer server;
     private int port;
 
@@ -40,36 +39,9 @@ public class LocalServer {
 
     }
 
-    public void addFileContexts(HttpServer server) {
-        for (String path : FileIterator.getPathList()) {
-            server.createContext(path, exchange -> {
-                if (!path.equals(exchange.getRequestURI().getPath())) {
-                    servePageNotFoundHtml(exchange);
-                    return;
-                }
-                try {
-                    FileInputStream fis = new FileInputStream("web/" + path);
-                    byte[] bytes = fis.readAllBytes();
-                    fis.close();
-                    String contentType = URLConnection.guessContentTypeFromName(new File(path).getName());
-
-//                    if (path.toLowerCase().endsWith(".html")) contentType = "text/html";
-//                    else if (path.toLowerCase().endsWith(".css")) contentType = "text/css";
-//                    else if (path.toLowerCase().endsWith(".js")) contentType = "text/javascript";
-                    exchange.getResponseHeaders().set("Content-Type", contentType);
-                    exchange.sendResponseHeaders(200, bytes.length);
-                    OutputStream os = exchange.getResponseBody();
-                    os.write(bytes);
-                    os.close();
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            });
-        }
-    }
-
     public void handleDefaultRequest(HttpExchange exchange) {
         String path = exchange.getRequestURI().getPath();
+        if (path.equals("/")) path = "/index.html";
 
         File file = new File("web/" + path);
         if (path.contains("..") || !file.exists() || file.isDirectory() || file.getName().startsWith(".")) {
@@ -95,7 +67,7 @@ public class LocalServer {
     }
 
     public String getDefaultURL() {
-        return "http://localhost:" + port + "/" + homeHtml;
+        return "http://localhost:" + port;
     }
 
     public void servePageNotFoundHtml(HttpExchange exchange) {
