@@ -6,6 +6,7 @@ import org.example.files.FileIterator;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.URLConnection;
 import java.util.Random;
 
 public class LocalServer {
@@ -28,10 +29,10 @@ public class LocalServer {
         server.createContext("/io", new ApiHandler(server));
 
         //create context from web files
-        addFileContexts(server);
+        //addFileContexts(server);
 
         //create default context
-        server.createContext("/", this::servePageNotFoundHtml);
+        server.createContext("/", this::handleDefaultRequest);
 
         //start server
         server.start();
@@ -50,10 +51,11 @@ public class LocalServer {
                     FileInputStream fis = new FileInputStream("web/" + path);
                     byte[] bytes = fis.readAllBytes();
                     fis.close();
-                    String contentType = "text/plain";
-                    if (path.toLowerCase().endsWith(".html")) contentType = "text/html";
-                    else if (path.toLowerCase().endsWith(".css")) contentType = "text/css";
-                    else if (path.toLowerCase().endsWith(".js")) contentType = "text/javascript";
+                    String contentType = URLConnection.guessContentTypeFromName(new File(path).getName());
+
+//                    if (path.toLowerCase().endsWith(".html")) contentType = "text/html";
+//                    else if (path.toLowerCase().endsWith(".css")) contentType = "text/css";
+//                    else if (path.toLowerCase().endsWith(".js")) contentType = "text/javascript";
                     exchange.getResponseHeaders().set("Content-Type", contentType);
                     exchange.sendResponseHeaders(200, bytes.length);
                     OutputStream os = exchange.getResponseBody();
@@ -63,6 +65,32 @@ public class LocalServer {
                     System.out.println(e);
                 }
             });
+        }
+    }
+
+    public void handleDefaultRequest(HttpExchange exchange) {
+        String path = exchange.getRequestURI().getPath();
+
+        File file = new File("web/" + path);
+        if (path.contains("..") || !file.exists() || file.isDirectory() || file.getName().startsWith(".")) {
+            servePageNotFoundHtml(exchange);
+            return;
+        }
+
+        try {
+            FileInputStream fis = new FileInputStream("web/" + path);
+            byte[] bytes = fis.readAllBytes();
+            fis.close();
+
+            String contentType = URLConnection.guessContentTypeFromName(file.getName());
+
+            exchange.getResponseHeaders().set("Content-Type", contentType);
+            exchange.sendResponseHeaders(200, bytes.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(bytes);
+            os.close();
+        } catch (IOException e) {
+            System.out.println(e);
         }
     }
 
