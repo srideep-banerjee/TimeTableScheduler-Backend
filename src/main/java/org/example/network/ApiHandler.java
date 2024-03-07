@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -434,7 +435,10 @@ public class ApiHandler implements HttpHandler {
 
     public void sendTextResponse(HttpExchange exchange, int code, String response) {
         try {
-            exchange.getResponseHeaders().set("Content-Type", "text/plain");
+            Headers headers = exchange.getResponseHeaders();
+            int port = server.getAddress().getPort();
+            headers.set("Content-Type", "text/plain");
+            headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:" + port);
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -446,7 +450,10 @@ public class ApiHandler implements HttpHandler {
 
     public void sendJsonResponse(HttpExchange exchange, int code, String response) {
         try {
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            Headers headers = exchange.getResponseHeaders();
+            int port = server.getAddress().getPort();
+            headers.set("Content-Type", "application/json");
+            headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:" + port);
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());

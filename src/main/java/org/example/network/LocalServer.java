@@ -64,7 +64,9 @@ public class LocalServer {
                     contentType = "plain/text";
                 }
 
-                exchange.getResponseHeaders().set("Content-Type", contentType);
+                Headers headers = exchange.getResponseHeaders();
+                headers.set("Content-Type", contentType);
+                headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:" + port);
                 exchange.sendResponseHeaders(200, bytes.length);
                 OutputStream os = exchange.getResponseBody();
                 os.write(bytes);
