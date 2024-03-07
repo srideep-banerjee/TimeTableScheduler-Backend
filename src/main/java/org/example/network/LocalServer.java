@@ -1,5 +1,6 @@
 package org.example.network;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -85,7 +86,9 @@ public class LocalServer {
             InputStream is = this.getClass().getClassLoader().getResourceAsStream("NotFound.html");
             byte[] bytes = is.readAllBytes();
             is.close();
-            exchange.getResponseHeaders().set("Content-Type", "text/html");
+            Headers headers = exchange.getResponseHeaders();
+            headers.set("Content-Type", "text/html");
+            headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:"+port);
             exchange.sendResponseHeaders(200, bytes.length);
             OutputStream os = exchange.getResponseBody();
             os.write(bytes);
