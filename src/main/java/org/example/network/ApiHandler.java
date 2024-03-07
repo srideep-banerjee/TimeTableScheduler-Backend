@@ -19,6 +19,7 @@ import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -437,8 +438,11 @@ public class ApiHandler implements HttpHandler {
         try {
             Headers headers = exchange.getResponseHeaders();
             int port = server.getAddress().getPort();
+            int clientPort = exchange.getRequestURI().getPort();
             headers.set("Content-Type", "text/plain");
-            headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:" + port);
+            if (Arrays.asList(3000,port).contains(exchange.getRequestURI().getPort())) {
+                headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
+            }
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -452,8 +456,11 @@ public class ApiHandler implements HttpHandler {
         try {
             Headers headers = exchange.getResponseHeaders();
             int port = server.getAddress().getPort();
+            int clientPort = exchange.getRequestURI().getPort();
             headers.set("Content-Type", "application/json");
-            headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:" + port);
+            if (Arrays.asList(3000,port).contains(exchange.getRequestURI().getPort())) {
+                headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
+            }
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());

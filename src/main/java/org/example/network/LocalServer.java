@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Random;
 
 public class LocalServer {
@@ -65,8 +66,11 @@ public class LocalServer {
                 }
 
                 Headers headers = exchange.getResponseHeaders();
+                int clientPort = exchange.getRequestURI().getPort();
                 headers.set("Content-Type", contentType);
-                headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:" + port);
+                if (Arrays.asList(3000,port).contains(exchange.getRequestURI().getPort())) {
+                    headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
+                }
                 exchange.sendResponseHeaders(200, bytes.length);
                 OutputStream os = exchange.getResponseBody();
                 os.write(bytes);
