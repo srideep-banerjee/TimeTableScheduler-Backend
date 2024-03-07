@@ -27,9 +27,6 @@ public class LocalServer {
 
         server.createContext("/io", new ApiHandler(server));
 
-        //create context from web files
-        //addFileContexts(server);
-
         //create default context
         server.createContext("/", this::handleDefaultRequest);
 
@@ -40,29 +37,42 @@ public class LocalServer {
     }
 
     public void handleDefaultRequest(HttpExchange exchange) {
-        String path = exchange.getRequestURI().getPath();
-        if (path.equals("/")) path = "/index.html";
+        try{
+            String path = exchange.getRequestURI().getPath();
+            if (path.equals("/")) path = "/index.html";
 
-        File file = new File("web/" + path);
-        if (path.contains("..") || !file.exists() || file.isDirectory() || file.getName().startsWith(".")) {
-            servePageNotFoundHtml(exchange);
-            return;
-        }
+            File file = new File("web/" + path);
+            if (path.contains("..") || !file.exists() || file.isDirectory() || file.getName().startsWith(".")) {
+                path = "/index.html";
+            }
 
-        try {
-            FileInputStream fis = new FileInputStream("web/" + path);
-            byte[] bytes = fis.readAllBytes();
-            fis.close();
+            try {
+                FileInputStream fis = new FileInputStream("web/" + path);
+                byte[] bytes = fis.readAllBytes();
+                fis.close();
 
-            String contentType = URLConnection.guessContentTypeFromName(file.getName());
+                String contentType;
+                if (path.endsWith(".map")) {
+                    contentType = "application/json";
+                } else if(path.endsWith(".ico")) {
+                    contentType = "image/x-icon";
+                } else {
+                    contentType = URLConnection.guessContentTypeFromName(new File(path).getName());
+                }
+                if (contentType == null) {
+                    contentType = "plain/text";
+                }
 
-            exchange.getResponseHeaders().set("Content-Type", contentType);
-            exchange.sendResponseHeaders(200, bytes.length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(bytes);
-            os.close();
-        } catch (IOException e) {
-            System.out.println(e);
+                exchange.getResponseHeaders().set("Content-Type", contentType);
+                exchange.sendResponseHeaders(200, bytes.length);
+                OutputStream os = exchange.getResponseBody();
+                os.write(bytes);
+                os.close();
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
