@@ -1,0 +1,55 @@
+get teachers -done response format:["SKB":{"freeTime":[[2,3],[3,4]],"subjects":["subcode1","subcode2"]}]
+
+put teachers -done request format:["SKB":{"freeTime":[[2,3],[3,4]],"subjects":["subcode1","subcode2"]}]
+
+delete teachers -done response: "Request accepted"
+
+get teachers/names -done response format:["SKB","AC","SAR"]
+
+get teachers/SKB -done response format:{"freeTime":[[2,3],[3,4]],"subjects":["subcode1","subcode2"]}
+
+put teachers/SKB -done request format:{{"freeTime":[[2,3],[3,4]],"subjects":["subcode1","subcode2"]}
+
+delete teachers/{teacherName} -done response:"Request accepted"
+
+
+
+get subjects -done response format:["subcode1":{"sem":1,"lectureCount":4,"isPractical":false,"roomCode":"LH-123"}]
+
+put subjects -done request format:["subcode1":{"sem":1,"lectureCount":4,"isPractical":false,"roomCode":"LH-123"}]
+
+delete subjects -done response: "Request accepted"
+
+get subjects/codes -done response format:["ESC501","PCC502","HSMC501"]
+
+get subjects/{subjectCode} -done response format:{"sem":1,"lectureCount":4,"isPractical":false,"roomCode":"LH-123"}
+
+put subjects/{subjectcode} -done request format:{"sem":1,"lectureCount":4,"isPractical":false,"roomCode":"LH-123"}
+
+delete subjects/{subjectCode} -done response: "Request accepted"
+
+
+
+get schedule -done response format= 5 dimensional array of format [semester][section][day][period][]=new String[]{"teacherName","subjectCode"} querys:- generatenew(optional): if true generate a new schedule else responses with currently saved schedule; sem(optional if sec not present): To generate or retrieve schedule of one semester; sec(optional): To generate or retrieve schedule of one section in a semester.
+
+put schedule -done request format: same as get schedule response body format. querys:- sem(mandatory): semester in which schedule is updated; sec(mandatory): section in which schedule is updated.
+
+get schedule/teacher/{teacher name} -done response format = 3 dimensional array of format [day][period][]=new String[]{}
+
+
+
+get schedule/structure -done response format: {"semesterCount":4,"sectionsPerSemester":[0,0,1,0],"periodCount":9,"breaksPerSemester":[[4,5],[5],[5],[5]]}
+
+put schedule/structure -done request format: {"semesterCount":4,"sectionsPerSemester":[0,0,1,0],"periodCount":9,"breaksPerSemester":[[4,5],[5],[5],[5]]}
+
+
+
+post saves/load -done response format: "Request accepted" querys:- name(mandatory): A new file with empty data will be created if a file called 'name' doesn't exist else the file called 'name' will be loaded as current state
+
+post saves/save -done response format: "Request accepted" querys:- name(mandatory): The current state will be saved in a new file if a file called 'name' doesn't exist else the contents of the file called 'name' will be overriden
+
+get saves/list -done response format: ["SAVE1", "SAVE2"]
+
+get saves/currentName -done response "SAVE1"
+
+post saves/delete -done response format: Request accepted
