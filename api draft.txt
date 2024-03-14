@@ -43,8 +43,9 @@ get schedule/structure -done response format: {"semesterCount":4,"sectionsPerSem
 put schedule/structure -done request format: {"semesterCount":4,"sectionsPerSemester":[0,0,1,0],"periodCount":9,"breaksPerSemester":[[4,5],[5],[5],[5]]}
 
 
+post saves/newEmpty -done response format: "Request accepted" querys:- name(mandatory): name of the new file to created with empty data
 
-post saves/load -done response format: "Request accepted" querys:- name(mandatory): A new file with empty data will be created if a file called 'name' doesn't exist else the file called 'name' will be loaded as current state
+post saves/load -done response format: "Request accepted" querys:- name(mandatory): The file called 'name' will be loaded as current state
 
 post saves/save -done response format: "Request accepted" querys:- name(mandatory): The current state will be saved in a new file if a file called 'name' doesn't exist else the contents of the file called 'name' will be overriden
 

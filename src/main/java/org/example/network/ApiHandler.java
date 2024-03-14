@@ -385,6 +385,14 @@ public class ApiHandler implements HttpHandler {
                     sendTextResponse(exchange, 400, "Invalid data format");
                 }
             } else sendInvalidOperationResponse(exchange);
+        } else if (path.equals("/io/saves/newEmpty")) {
+            if (querys == null) {
+                sendTextResponse(exchange, 400, "No name provided to create");
+                return;
+            }
+            String res = SavesHandler.newEmptySave(querys.substring(5).toUpperCase());
+            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+            else sendTextResponse(exchange, 400, res);
         } else if (path.equals("/io/saves/load")) {
             if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to load");

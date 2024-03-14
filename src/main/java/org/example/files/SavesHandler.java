@@ -17,6 +17,32 @@ import java.util.*;
 
 public class SavesHandler {
 
+    public static String newEmptySave(String name) {
+        if (name.equals("null")) return "Can't use name '" + name + "'";
+        if (!new File("Saves").exists()) {
+            boolean dirCreated = new File("Saves").mkdir();
+            if (!dirCreated) return "Couldn't create 'Saves' directory";
+        }
+        ObjectMapper om = new ObjectMapper();
+        File saveFile = new File("Saves" + File.separator + name + ".dat");
+        try {
+            if (saveFile.exists()) return "File already exists";
+            if (!saveFile.createNewFile()) return "Couldn't create file";
+            try (PrintStream ps = new PrintStream(saveFile)) {
+                ps.println(om.writeValueAsString(new HashMap<>()));
+                ps.println(om.writeValueAsString(new HashMap<>()));
+                ps.println("{\"semesterCount\":4,\"sectionsPerSemester\":[0,0,1,0],\"periodCount\":9,\"breaksPerSemester\":[[4,5],[5],[5],[5]]}");
+                ps.println("true");
+            } catch (IOException e) {
+                saveFile.delete();
+            }
+        } catch (IOException e) {
+            return "An error occurred while writing new file";
+        }
+        if (!updateCurrentSaveName(name)) return "Can't update file currently loaded name";
+        return null;
+    }
+
     public static String save(String name) {
         if (name.equals("null")) return "Can't use name '" + name + "'";
         if (!new File("Saves").exists()) {
@@ -114,7 +140,7 @@ public class SavesHandler {
         String[] saveList = getSaveList();
 
         if (saveList.length == 0) {
-            save("UNTITLED");
+            newEmptySave("UNTITLED");
             return "UNTITLED";
         }
         else {
