@@ -13,17 +13,17 @@ import java.util.Random;
 public class LocalServer {
     private final String homeHtml = "index.html";
     private HttpServer server;
-    private int port;
+    private int port = 9000;
 
     public LocalServer() {
         Random random = new Random();
         while (true) {
             try {
-                this.port = random.nextInt(5000, 65535);
                 this.server = HttpServer.create(new InetSocketAddress(port), 0);
                 break;
             } catch (IOException e) {
-                e.printStackTrace();
+                this.port = random.nextInt(5000, 65535);
+                System.out.println("Port " + port + " unavailable trying port " + port);
             }
         }
 
