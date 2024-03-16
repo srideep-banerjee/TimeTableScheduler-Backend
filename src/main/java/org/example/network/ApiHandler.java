@@ -43,6 +43,10 @@ public class ApiHandler implements HttpHandler {
         String requestMethod = exchange.getRequestMethod();
         String querys = exchange.getRequestURI().getQuery();
         System.out.println(requestMethod + " " + path + (querys != null ? "?" + querys : ""));
+        if (requestMethod.equals("OPTIONS")) {
+            sendPreflightResponse(exchange);
+            return;
+        }
 
         if (path.equals("/io/heartbeat")) {
             sendTextResponse(exchange, 200, "Ok");
@@ -453,9 +457,9 @@ public class ApiHandler implements HttpHandler {
         try {
             Headers headers = exchange.getResponseHeaders();
             int port = server.getAddress().getPort();
-            int clientPort = exchange.getRequestURI().getPort();
+            int clientPort = 3000;
             headers.set("Content-Type", "text/plain");
-            if (Arrays.asList(3000,port).contains(exchange.getRequestURI().getPort())) {
+            if (Arrays.asList(3000,port).contains(clientPort)) {
                 headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
             }
             exchange.sendResponseHeaders(code, response.length());
@@ -471,14 +475,33 @@ public class ApiHandler implements HttpHandler {
         try {
             Headers headers = exchange.getResponseHeaders();
             int port = server.getAddress().getPort();
-            int clientPort = exchange.getRequestURI().getPort();
+            int clientPort = 3000;
             headers.set("Content-Type", "application/json");
-            if (Arrays.asList(3000,port).contains(exchange.getRequestURI().getPort())) {
+            if (Arrays.asList(3000,port).contains(clientPort)) {
                 headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
             }
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendPreflightResponse(HttpExchange exchange) {
+        try {
+            Headers headers = exchange.getResponseHeaders();
+            int port = server.getAddress().getPort();
+            int clientPort = 3000;
+            headers.set("Content-Type", "text/plain");
+            if (Arrays.asList(3000,port).contains(clientPort)) {
+                headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
+                headers.set("Access-Control-Allow-Methods","GET,PUT,POST,DELETE");
+                headers.set("Access-Control-Allow-Headers","Content-Type");
+            }
+            exchange.sendResponseHeaders(200, 0);
+            OutputStream os = exchange.getResponseBody();
             os.close();
         } catch (IOException e) {
             e.printStackTrace();

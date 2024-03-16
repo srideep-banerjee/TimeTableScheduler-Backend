@@ -66,9 +66,9 @@ public class LocalServer {
                 }
 
                 Headers headers = exchange.getResponseHeaders();
-                int clientPort = exchange.getRequestURI().getPort();
+                int clientPort = 3000;
                 headers.set("Content-Type", contentType);
-                if (Arrays.asList(3000,port).contains(exchange.getRequestURI().getPort())) {
+                if (Arrays.asList(3000,port).contains(clientPort)) {
                     headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
                 }
                 exchange.sendResponseHeaders(200, bytes.length);
