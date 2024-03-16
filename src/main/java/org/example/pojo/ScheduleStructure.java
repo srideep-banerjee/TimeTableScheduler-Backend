@@ -59,7 +59,7 @@ public class ScheduleStructure {
 
     @JsonSerialize(using = Byte2DArraySerializer.class)
     @JsonGetter("breaksPerSemester")
-    public byte[][] gerBreaksPerSemester() {
+    public byte[][] getBreaksPerSemester() {
         return breaksPerSemester;
     }
 
