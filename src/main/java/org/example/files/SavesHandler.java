@@ -103,6 +103,8 @@ public class SavesHandler {
             //Update ScheduleStructure
             data = sc.nextLine();
             om.readerForUpdating(ScheduleStructure.getInstance()).readValue(data, ScheduleStructure.class);
+
+            //Updating ScheduleSolution
             data = sc.nextLine();
             if (Boolean.parseBoolean(data)) {
                 ScheduleSolution.getInstance().setEmpty(Boolean.parseBoolean(data));
@@ -133,6 +135,85 @@ public class SavesHandler {
         } catch (FileNotFoundException e) {
             return null;
         }
+    }
+
+    public static boolean isSaved() {
+        String name = getCurrentSave();
+        ObjectMapper om = new ObjectMapper();
+        File saveFile = new File("Saves" + File.separator + name + ".dat");
+        if (!saveFile.exists() || name.equals("null"))
+            return false;
+        try (Scanner sc = new Scanner(saveFile)) {
+            //Comparing subjects
+            String data = sc.nextLine();
+            HashMap<String, Subject> subjects = new HashMap<>();
+            JsonNode arr = om.readTree(data);
+            for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
+                String code = it.next();
+                JsonNode subJson = arr.get(code);
+                Subject subject = om.reader().readValue(subJson, Subject.class);
+                subjects.put(code, subject);
+            }
+            if (!subjects.equals(SubjectDao.getInstance())) {
+                return false;
+            }
+
+            //Comparing Teachers
+            data = sc.nextLine();
+            HashMap<String, Teacher> teachers = new HashMap<>();
+            arr = om.readTree(data);
+            for (Iterator<String> it = arr.fieldNames(); it.hasNext(); ) {
+                String tname = it.next();
+                JsonNode subJson = arr.get(tname);
+                Teacher teacher = om.reader().readValue(subJson, Teacher.class);
+                teachers.put(tname, teacher);
+            }
+            if (!teachers.equals(TeacherDao.getInstance()))
+                return false;
+
+            //Comparing ScheduleStructure
+            data = sc.nextLine();
+            ScheduleStructure scheduleStructure = ScheduleStructure.getInstance();
+            byte[] sectionsPerSemester = scheduleStructure.getSectionsPerSemester();
+            byte semesterCount = scheduleStructure.getSemesterCount();
+            byte periodCount = scheduleStructure.getPeriodCount();
+            byte[][] breaksPerSemester = scheduleStructure.getBreaksPerSemester();
+            om.readerForUpdating(scheduleStructure).readValue(data, ScheduleStructure.class);
+            System.out.println("Beginning comparison");
+            if (!Arrays.equals(sectionsPerSemester, scheduleStructure.getSectionsPerSemester()))
+                return false;
+            System.out.println("Sections per Semester equal");
+            if (semesterCount != scheduleStructure.getSemesterCount())
+                return false;
+            System.out.println("Semester count equal");
+            if (periodCount != scheduleStructure.getPeriodCount())
+                return false;
+            System.out.println("Period count equal");
+            if (!Arrays.deepEquals(breaksPerSemester, scheduleStructure.getBreaksPerSemester()))
+                return false;
+            System.out.println("Breaks per semester equal");
+            scheduleStructure.setSemesterCount(semesterCount);
+            scheduleStructure.setSectionsPerSemester(sectionsPerSemester);
+            scheduleStructure.setPeriodCount(periodCount);
+            scheduleStructure.setBreaksPerSemester(breaksPerSemester);
+
+            //Comparing ScheduleSolution
+            data = sc.nextLine();
+            if (Boolean.parseBoolean(data) != ScheduleSolution.getInstance().isEmpty())
+                return false;
+            System.out.println("Schedule structure empty state equal");
+            if (!Boolean.parseBoolean(data)) {
+                List<List<List<List<List<String>>>>> l = new ArrayList<>();
+                l = om.reader().readValue(sc.nextLine(), l.getClass());
+                if (!l.equals(ScheduleSolution.getInstance().getData()))
+                    return false;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     private static String rectifyCurrentSaved() {

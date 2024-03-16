@@ -382,6 +382,7 @@ public class ApiHandler implements HttpHandler {
                     sendTextResponse(exchange, 200, "Request accepted");
                     ScheduleSolution.getInstance().updateStructure();
                 } catch (Exception e) {
+                    e.printStackTrace();
                     sendTextResponse(exchange, 400, "Invalid data format");
                 }
             } else sendInvalidOperationResponse(exchange);
@@ -425,6 +426,12 @@ public class ApiHandler implements HttpHandler {
             try {
                 String response = objectMapper.writeValueAsString(SavesHandler.getSaveList());
                 sendJsonResponse(exchange, 200, response);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (path.equals("/io/saves/isSaved")) {
+            try {
+                sendTextResponse(exchange, 200, SavesHandler.isSaved()+"");
             } catch (Exception e) {
                 e.printStackTrace();
             }

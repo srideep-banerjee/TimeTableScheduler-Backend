@@ -15,6 +15,18 @@ public class Teacher {
         this.subjects = subjects;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Teacher teacher)) return false;
+        return Objects.equals(freeTime, teacher.freeTime) && Objects.equals(subjects, teacher.subjects);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(freeTime, subjects);
+    }
+
     @JsonGetter("freeTime")
     public HashSet<int[]> getFreeTime() {
         return freeTime;
