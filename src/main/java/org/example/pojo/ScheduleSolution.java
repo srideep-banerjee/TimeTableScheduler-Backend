@@ -51,18 +51,19 @@ public class ScheduleSolution {
         ScheduleStructure ss = ScheduleStructure.getInstance();
         List<List<List<List<List<String>>>>> previousData = data;
         resetData();
+        empty = false;
         for (int i = 0; i < ss.getSemesterCount() && i < previousData.size(); i++) {
             for (int j = 0; j < ss.getSectionCount(i * 2 + 1) && j < previousData.get(i).size(); j++) {
                 for (int k = 0; k < 5; k++) {
                     for (int l = 0; l < ss.getPeriodCount() && l < previousData.get(i).get(j).get(k).size(); l++) {
                         boolean in = true;
                         for (byte brk : ss.getBreakLocations(i * 2 + 1)) {
-                            if (brk == l) {
+                            if (brk - 1 == l) {
                                 in = false;
                                 break;
                             }
                         }
-                        if (!in)
+                        if (in)
                             data.get(i).get(j).get(k).set(l, previousData.get(i).get(j).get(k).get(l));
                     }
                 }
