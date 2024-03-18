@@ -50,8 +50,9 @@ public class ScheduleSolution {
     public void updateStructure() {
         ScheduleStructure ss = ScheduleStructure.getInstance();
         List<List<List<List<List<String>>>>> previousData = data;
+        boolean isEmpty = empty;
         resetData();
-        empty = false;
+        empty = isEmpty;
         for (int i = 0; i < ss.getSemesterCount() && i < previousData.size(); i++) {
             for (int j = 0; j < ss.getSectionCount(i * 2 + 1) && j < previousData.get(i).size(); j++) {
                 for (int k = 0; k < 5; k++) {
