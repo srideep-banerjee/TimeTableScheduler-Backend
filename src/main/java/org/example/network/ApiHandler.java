@@ -8,6 +8,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.example.DefaultConfig;
 import org.example.algorithms.Generator;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
@@ -40,6 +41,11 @@ public class ApiHandler implements HttpHandler {
     public void handle(HttpExchange exchange) {
         //try{
         String path = exchange.getRequestURI().getPath();
+        List<String> apiTokenHeader = exchange.getRequestHeaders().get("Api-Token");
+        if (DefaultConfig.REQUIRE_TOKEN && (apiTokenHeader == null || apiTokenHeader.isEmpty() || !apiTokenHeader.get(0).equals(TokenManager.token))) {
+            sendInvalidTokenResponse(exchange);
+            return;
+        }
         String requestMethod = exchange.getRequestMethod();
         String querys = exchange.getRequestURI().getQuery();
         System.out.println(requestMethod + " " + path + (querys != null ? "?" + querys : ""));
@@ -506,5 +512,9 @@ public class ApiHandler implements HttpHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendInvalidTokenResponse(HttpExchange exchange) {
+        sendTextResponse(exchange, 400, "Invalid token");
     }
 }
