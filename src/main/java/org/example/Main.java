@@ -2,6 +2,7 @@ package org.example;
 
 import org.example.files.SavesHandler;
 import org.example.network.LocalServer;
+import org.example.network.TokenManager;
 
 import java.io.IOException;
 
@@ -17,8 +18,11 @@ public class Main {
 
         //ChromosomeTest.startTest();
 
+        TokenManager.generateNewRandomToken();
+        System.out.println(TokenManager.token);
+
         try {
-            ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL());
+            ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL(), TokenManager.token);
             Process p= processBuilder.start();
             p.waitFor();
             System.out.println("Process exited with code "+p.exitValue());
