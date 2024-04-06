@@ -179,19 +179,14 @@ public class SavesHandler {
             byte periodCount = scheduleStructure.getPeriodCount();
             byte[][] breaksPerSemester = scheduleStructure.getBreaksPerSemester();
             om.readerForUpdating(scheduleStructure).readValue(data, ScheduleStructure.class);
-            System.out.println("Beginning comparison");
             if (!Arrays.equals(sectionsPerSemester, scheduleStructure.getSectionsPerSemester()))
                 return false;
-            System.out.println("Sections per Semester equal");
             if (semesterCount != scheduleStructure.getSemesterCount())
                 return false;
-            System.out.println("Semester count equal");
             if (periodCount != scheduleStructure.getPeriodCount())
                 return false;
-            System.out.println("Period count equal");
             if (!Arrays.deepEquals(breaksPerSemester, scheduleStructure.getBreaksPerSemester()))
                 return false;
-            System.out.println("Breaks per semester equal");
             scheduleStructure.setSemesterCount(semesterCount);
             scheduleStructure.setSectionsPerSemester(sectionsPerSemester);
             scheduleStructure.setPeriodCount(periodCount);
@@ -201,7 +196,6 @@ public class SavesHandler {
             data = sc.nextLine();
             if (Boolean.parseBoolean(data) != ScheduleSolution.getInstance().isEmpty())
                 return false;
-            System.out.println("Schedule structure empty state equal");
             if (!Boolean.parseBoolean(data)) {
                 List<List<List<List<List<String>>>>> l = new ArrayList<>();
                 l = om.reader().readValue(sc.nextLine(), l.getClass());
