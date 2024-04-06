@@ -5,7 +5,7 @@ import java.util.Random;
 public class TokenManager {
     public static String token = "";
 
-    private static String includedCharacters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ{}[]|+-*/_.<>{}[]()~'\"\\!@#$%^&?,";
+    private static String includedCharacters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ{}[]|+-*_.<>{}[]()~!@#$%^&?,";
 
     public static void generateNewRandomToken() {
         StringBuffer sb = new StringBuffer();
