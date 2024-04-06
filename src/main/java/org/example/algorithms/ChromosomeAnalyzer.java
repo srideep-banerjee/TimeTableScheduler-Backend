@@ -239,6 +239,7 @@ public class ChromosomeAnalyzer {
 
         ArrayList<DayPeriod> dayPeriods = new ArrayList<>();
         int periodCount = ScheduleStructure.getInstance().getPeriodCount();
+        //Here 5 is the day count
         int[] values = Util.shuffle(periodCount * 5);
 
         //if semesterSection isn't allocated
