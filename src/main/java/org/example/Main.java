@@ -19,7 +19,6 @@ public class Main {
         //ChromosomeTest.startTest();
 
         TokenManager.generateNewRandomToken();
-        System.out.println(TokenManager.token);
 
         try {
             ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL(), TokenManager.token);
