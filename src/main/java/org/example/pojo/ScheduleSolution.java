@@ -86,7 +86,7 @@ public class ScheduleSolution {
             boolean free = subjectDao.get(subject).isFree();
 
             for (byte sec = 0; sec < secCount; sec++) {
-                String teacher = "NULL";
+                String teacher = null;
                 short val = -1;
                 short value;
                 String roomCode;
