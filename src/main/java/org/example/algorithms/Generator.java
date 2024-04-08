@@ -133,7 +133,8 @@ public class Generator {
         for (Map.Entry<Integer, Short> entry: totalPeriodCounts.entrySet()) {
             int numberOfPeriods = scheduleData.getPeriodCount() - scheduleData.getBreakLocations(entry.getKey()).length;
             if(entry.getValue() > numberOfPeriods * 5) {
-                onResultListener.onError("Number of Lectures required in Year: "+(entry.getKey() + 1) + " exceeds available time slots");
+                onResultListener.onError("Total lecture count in Semester: " + entry.getKey() + " exceeds total period count by " + (entry.getValue() - numberOfPeriods * 5));
+                stop();
             }
         }
     }
