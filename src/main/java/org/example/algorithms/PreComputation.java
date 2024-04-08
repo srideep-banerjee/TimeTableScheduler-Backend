@@ -58,6 +58,15 @@ public class PreComputation {
         Arrays.sort(subjectCodeArray,
                 (a,b) -> subjectDao.get(a).getRoomCodes().size() - subjectDao.get(b).getRoomCodes().size());
 
+        //Move non-free subjects to the beginning
+        Arrays.sort(subjectCodeArray, (a,b)->{
+            boolean aFree = subjectDao.get(a).isFree();
+            boolean bFree = subjectDao.get(b).isFree();
+            if (aFree == bFree) return 0;
+            else if (aFree) return 1;
+            else return -1;
+        });
+
         //Move practical subjects to the beginning
         Arrays.sort(subjectCodeArray, (a,b)->{
             boolean aPractical = subjectDao.get(a).isPractical();

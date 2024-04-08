@@ -83,7 +83,7 @@ public class ChromosomeAnalyzer {
         }
     }
 
-    public boolean isSectionFree(SemesterSection semesterSection, DayPeriod dayPeriod) {
+    public boolean isSectionAvailable(SemesterSection semesterSection, DayPeriod dayPeriod) {
         byte[] breakLocations = ScheduleStructure.getInstance().getBreakLocations(semesterSection.semester);
         for (byte brk : breakLocations) if (brk == dayPeriod.period + 1) return false;
         HashMap<DayPeriod, String> hm = sectionAllocationTable.get(semesterSection);
@@ -91,30 +91,29 @@ public class ChromosomeAnalyzer {
         return hm.get(dayPeriod) == null;
     }
 
-    public boolean isTeacherFree(DayPeriod dayPeriod, short teacherIndex) {
+    public boolean isTeacherAvailable(DayPeriod dayPeriod, short teacherIndex) {
         Teacher teacher = TeacherDao.getInstance().get(teacherNameArray[teacherIndex]);
         if (!teacher.getFreeTime().isEmpty() && !teacher.getFreeTime().contains(new int[]{dayPeriod.day, dayPeriod.period}))
             return false;
         return !teacherTimeAllocationTable.containsKey(new TeacherTimeSlot(dayPeriod, teacherIndex));
     }
 
-    public boolean isPracticalLabFree(DayPeriod dayPeriod, String roomCode) {
+    public boolean isPracticalLabAvailable(DayPeriod dayPeriod, String roomCode) {
         if (!practicalLabAllocationTable.containsKey(roomCode)) return true;
         return !practicalLabAllocationTable.get(roomCode).contains(dayPeriod);
     }
 
     public void assignTheory(SemesterSection semesterSection, DayPeriod dayPeriod, short teacherIndex, String subject) {
-//        TeacherTimeSlot teacherTimeSlot = new TeacherTimeSlot(dayPeriod, teacherIndex);
         Subject subjectObj = SubjectDao.getInstance().get(subject);
         if (subjectObj.isPractical()) throw new IllegalArgumentException(subject + " is a practical subject");
+        if (subjectObj.isFree()) throw new IllegalArgumentException(subject + " is a free subject");
 
-        boolean sectionFree = isSectionFree(semesterSection, dayPeriod);
-        boolean teacherFree = isTeacherFree(dayPeriod, teacherIndex);
+        boolean sectionFree = isSectionAvailable(semesterSection, dayPeriod);
+        boolean teacherFree = isTeacherAvailable(dayPeriod, teacherIndex);
 
         if (sectionFree) {
             HashMap<DayPeriod, String> hm = sectionAllocationTable.computeIfAbsent(semesterSection, k -> new HashMap<>());
             hm.put(dayPeriod, subject);
-//            return;
         }
         if (teacherFree) {
             teacherTimeAllocationTable.put(new TeacherTimeSlot(dayPeriod, teacherIndex), semesterSection);
@@ -126,28 +125,25 @@ public class ChromosomeAnalyzer {
             subjects.add(semesterSection);
             tsd.theoryCount++;
         }
+    }
 
-//        if (!sectionFree) {
-//            HashMap<DayPeriod, HashMap<String, Short>> hm1 = sectionConflictTable.computeIfAbsent(semesterSection, k -> new HashMap<>());
-//            HashMap<String, Short> dayPeriodConflicts = hm1.computeIfAbsent(dayPeriod, k -> new HashMap<>());
-//            Short count = dayPeriodConflicts.get(subject);
-//            if (count == null) count = 0;
-//            dayPeriodConflicts.put(subject, ++count);
-//        }
-//        if (!teacherFree) {
-//            if (!teacherTimeConflictTable.containsKey(teacherTimeSlot)) {
-//                HashMap<SemesterSection, Short> hm = new HashMap<>();
-//                hm.put(semesterSection, (short) 0);
-//                teacherTimeConflictTable.put(teacherTimeSlot, hm);
-//            }
-//            HashMap<SemesterSection, Short> hm = teacherTimeConflictTable.get(teacherTimeSlot);
-//            hm.put(semesterSection, (short) (hm.get(semesterSection) + 1));
-//        }
+    public void assignFreeTheory(SemesterSection semesterSection, DayPeriod dayPeriod, String subject) {
+        Subject subjectObj = SubjectDao.getInstance().get(subject);
+        if (subjectObj.isPractical()) throw new IllegalArgumentException(subject + " is a practical subject");
+        if (!subjectObj.isFree()) throw new IllegalArgumentException(subject + " is not a free subject");
+
+        boolean sectionFree = isSectionAvailable(semesterSection, dayPeriod);
+
+        if (sectionFree) {
+            HashMap<DayPeriod, String> hm = sectionAllocationTable.computeIfAbsent(semesterSection, k -> new HashMap<>());
+            hm.put(dayPeriod, subject);
+        }
     }
 
     public void assignPractical(SemesterSection semesterSection, DayPeriod startDayPeriod, short[] teacherIndices, String subject, String roomCode) {
         Subject subjectObj = SubjectDao.getInstance().get(subject);
         if(!subjectObj.isPractical())  throw new IllegalArgumentException(subject + " is not a practical subject");
+        if (subjectObj.isFree()) throw new IllegalArgumentException(subject + " is a free subject");
 
         byte lectureCount = (byte) subjectObj.getLectureCount();
         short compact = startDayPeriod.getCompact();
@@ -160,18 +156,18 @@ public class ChromosomeAnalyzer {
             DayPeriod dayPeriod = new DayPeriod(com);
 
             //check if section free during period
-            if (isSectionFree(semesterSection, dayPeriod))
+            if (isSectionAvailable(semesterSection, dayPeriod))
                 sectionSlots.put(dayPeriod, subject);
 
             //check if all teacher free during period
             for (short teacherIndex: teacherIndices) {
-                if(isTeacherFree(dayPeriod, teacherIndex)) {
+                if(isTeacherAvailable(dayPeriod, teacherIndex)) {
                     teacherTimeAllocationTable.put(new TeacherTimeSlot(dayPeriod, teacherIndex), semesterSection);
                 }
             }
 
             //check if practical lab free during period
-            if(isPracticalLabFree(dayPeriod, roomCode))
+            if(isPracticalLabAvailable(dayPeriod, roomCode))
                 labAllocDayPeriods.add(dayPeriod);
         }
 
@@ -185,12 +181,32 @@ public class ChromosomeAnalyzer {
         }
     }
 
+    public void assignFreePractical(SemesterSection semesterSection, DayPeriod startDayPeriod, String subject) {
+        Subject subjectObj = SubjectDao.getInstance().get(subject);
+        if(!subjectObj.isPractical())  throw new IllegalArgumentException(subject + " is not a practical subject");
+        if (!subjectObj.isFree()) throw new IllegalArgumentException(subject + " is not a free subject");
+
+        byte lectureCount = (byte) subjectObj.getLectureCount();
+        short compact = startDayPeriod.getCompact();
+
+        HashMap<DayPeriod, String> sectionSlots = sectionAllocationTable.computeIfAbsent(semesterSection, k -> new HashMap<>());
+
+        //iterate through all day-period of practical class
+        for (short com = compact; com < compact + lectureCount; com++) {
+            DayPeriod dayPeriod = new DayPeriod(com);
+
+            //check if section free during period
+            if (isSectionAvailable(semesterSection, dayPeriod))
+                sectionSlots.put(dayPeriod, subject);
+        }
+    }
+
     public boolean isAssignNonConflicting(SemesterSection semesterSection, DayPeriod dayPeriod, short teacherIndex, String subject, String roomCode) {
         Subject subjectObj = SubjectDao.getInstance().get(subject);
-        boolean sectionFree = isSectionFree(semesterSection, dayPeriod);
-        boolean teacherFree = isTeacherFree(dayPeriod, teacherIndex);
+        boolean sectionFree = isSectionAvailable(semesterSection, dayPeriod);
+        boolean teacherFree = isTeacherAvailable(dayPeriod, teacherIndex);
         boolean practicalLabFree = !subjectObj.isPractical() ||
-                isPracticalLabFree(dayPeriod, roomCode);
+                isPracticalLabAvailable(dayPeriod, roomCode);
         return sectionFree && teacherFree && practicalLabFree;
     }
 
@@ -233,6 +249,37 @@ public class ChromosomeAnalyzer {
         return choices.get(random.nextInt(choices.size()));
     }
 
+    public DayPeriod suggestFreePracticalDayPeriod(SemesterSection semesterSection, String subject) {
+        Subject sub = SubjectDao.getInstance().get(subject);
+        if (!sub.isPractical()) throw new IllegalArgumentException(subject + " is not a practical subject");
+        if (!sub.isFree()) throw new IllegalArgumentException(subject + " is not a free subject");
+
+        ArrayList<DayPeriod> choices = new ArrayList<>();
+
+        ArrayList<Byte> allocationPeriods = Util.getAllPracticalPeriodLocations(subject);
+
+        //iterate through each day and check if allocation conflict free
+        for (byte startPeriod: allocationPeriods) {
+            for (byte day = 0; day < 5; day++) {
+                boolean valid = true;
+                for (byte period = startPeriod; period < startPeriod + sub.getLectureCount(); period++) {
+                    DayPeriod dayPeriod = new DayPeriod(day, period);
+                    if (!isSectionAvailable(semesterSection, dayPeriod)) {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                //if allocation possible, add the starting dayPeriod to choices
+                if (valid) choices.add(new DayPeriod(day, startPeriod));
+            }
+            if (!choices.isEmpty()) break;
+        }
+
+        if(choices.isEmpty()) return new DayPeriod((byte) random.nextInt(5), allocationPeriods.get(0));
+        return choices.get(random.nextInt(choices.size()));
+    }
+
     public ArrayList<DayPeriod> suggestTheoryDayPeriod(SemesterSection semesterSection, short teacherIndex, String subject) {
         Subject sub = SubjectDao.getInstance().get(subject);
         if (sub.isPractical()) throw new IllegalArgumentException(subject + " is a practical subject");
@@ -255,10 +302,33 @@ public class ChromosomeAnalyzer {
         return dayPeriods;
     }
 
+    public ArrayList<DayPeriod> suggestFreeTheoryDayPeriod(SemesterSection semesterSection, String subject) {
+        Subject sub = SubjectDao.getInstance().get(subject);
+        if (sub.isPractical()) throw new IllegalArgumentException(subject + " is a practical subject");
+        if (!sub.isFree()) throw new IllegalArgumentException(subject + " is not a free subject");
+
+        ArrayList<DayPeriod> dayPeriods = new ArrayList<>();
+        int periodCount = ScheduleStructure.getInstance().getPeriodCount();
+        //Here 5 is the day count
+        int[] values = Util.shuffle(periodCount * 5);
+
+        //if semesterSection isn't allocated
+        for (int i = 0; i < values.length && dayPeriods.size() < sub.getLectureCount(); i++) {
+            DayPeriod dayPeriod = new DayPeriod((short) values[i]);
+            if (isSectionAvailable(semesterSection, dayPeriod)) {
+                dayPeriods.add(dayPeriod);
+            }
+        }
+        while (dayPeriods.size() < sub.getLectureCount()) {
+            dayPeriods.add(new DayPeriod((short) random.nextInt(periodCount * 5)));
+        }
+        return dayPeriods;
+    }
+
     public ArrayList<Short> suggestPracticalTeachers(SemesterSection semesterSection, short subjectIndex) {
         String subject = subjectCodeArray[subjectIndex];
         Subject sub = SubjectDao.getInstance().get(subject);
-        TeacherDao teacherDao =TeacherDao.getInstance();
+        TeacherDao teacherDao = TeacherDao.getInstance();
 
         if (!sub.isPractical()) throw new IllegalArgumentException(subject + " is not a practical subject");
 

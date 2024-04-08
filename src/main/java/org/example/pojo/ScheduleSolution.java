@@ -83,31 +83,35 @@ public class ScheduleSolution {
             byte secCount = ScheduleStructure.getInstance().getSectionCount(sem);
             sem = (byte) (sem % 2 == 0 ? sem / 2 : (sem + 1) / 2);
             boolean practical = subjectDao.get(subject).isPractical();
+            boolean free = subjectDao.get(subject).isFree();
 
             for (byte sec = 0; sec < secCount; sec++) {
-                String teacher = null;
+                String teacher = "NULL";
                 short val = -1;
                 short value;
                 String roomCode;
                 if (!practical) {
-                    teacher = teachers[sc.nextShort()];
+                    if (!free) teacher = teachers[sc.nextShort()];
                     roomCode = subjectDao.get(subject).getRoomCodes().get(0);
                 }
                 else {
                     val = sc.nextShort();
-                    roomCode = roomCodes[sc.nextShort()];
+                    if (!free) roomCode = roomCodes[sc.nextShort()];
+                    else roomCode = subjectDao.get(subject).getRoomCodes().get(0);
                 }
                 int lectureCount = subjectDao.get(subject).getLectureCount();
 
                 for (int j = 0; j < lectureCount; j++) {
                     if (practical) {
-                        teacher = teachers[sc.nextShort()];
-                        String key = String.format("%d,%d,%s", sem - 1, sec, subject);
                         value = (short) (val + j);
-                        if (!practicalPeriods.containsKey(key)) practicalPeriods.put(key, new ArrayList<>());
-                        practicalPeriods.get(key).add(value);
-                        if (!practicalTeachers.containsKey(key)) practicalTeachers.put(key, new HashSet<>());
-                        practicalTeachers.get(key).add(teacher);
+                        if (!free) {
+                            teacher = teachers[sc.nextShort()];
+                            String key = String.format("%d,%d,%s", sem - 1, sec, subject);
+                            if (!practicalPeriods.containsKey(key)) practicalPeriods.put(key, new ArrayList<>());
+                            practicalPeriods.get(key).add(value);
+                            if (!practicalTeachers.containsKey(key)) practicalTeachers.put(key, new HashSet<>());
+                            practicalTeachers.get(key).add(teacher);
+                        }
                     } else {
                         value = sc.nextShort();
                     }
@@ -129,6 +133,8 @@ public class ScheduleSolution {
                         .set(0, teachersCombined);
             }
         }
+
+        sc.close();
     }
 
     public void removeAllTeachers() {
