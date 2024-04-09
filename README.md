@@ -28,3 +28,22 @@ Then Copy the build product to TimeTableScheduler-Backend's `web` directory. **(
 
 **Step 6:**
 Now you just need to run the TimeTableScheduler-Backend's `main.java` file using Intellij IDEA or any code editor or framework.
+
+# These are the Constraints that are used in our AI system to generate the time table:
+**Hard (Mandatory) Constraints include :**
+1. One practical subject class per week
+2. All teachers alloted within availability
+3. Subjects alloted their required no. of lectures in all sections
+4. Practical subjects not allocated same room at same time
+5. Two teachers not teaching a semester-section same subject (theory only)
+6. Two teachers/subject not at a semester-section at same time (theory only)
+7. Teachers only teaching one semster-section at a time
+8. Practical subjects assigned consecutive periods
+9. Practical teachers must be available during all practical subjects
+10. All teachers assigned atleast one subject in a section class
+11. All teachers get assigned subjects known to them
+12. Theory teachers also teaching practical
+13. Teachers count for practical class equals lecture count
+
+**Soft (Preffered) Constraints include :**
+1. Practical Lab in end of second half
