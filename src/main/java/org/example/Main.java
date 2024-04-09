@@ -21,7 +21,7 @@ public class Main {
         TokenManager.generateNewRandomToken();
 
         try {
-            ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL(), TokenManager.token);
+            ProcessBuilder processBuilder =new ProcessBuilder("Short-Jre\\bin\\javaw", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL(), TokenManager.token);
             Process p= processBuilder.start();
             p.waitFor();
             ////System.out.println("Process exited with code "+p.exitValue());
