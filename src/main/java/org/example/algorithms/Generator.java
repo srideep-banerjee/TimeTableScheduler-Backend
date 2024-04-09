@@ -58,7 +58,7 @@ public class Generator {
                 int stagnantCount = 0;
                 calculateFitness();
                 String trailer = DefaultConfig.GENERATOR_LOG_SINGLE_LINE? "\r" : "\n";
-                System.out.print("Generation:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
+                //System.out.print("Generation:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
                 while (maxFitness < 1 && stagnantCount <= stagnantTerminationCount && !stopped) {
                     if(maxFitness == prevMaxFitness) stagnantCount++;
                     else stagnantCount = 0;
@@ -67,9 +67,9 @@ public class Generator {
                     generateNewPopulation();
                     calculateFitness();
                     generation++;
-                    System.out.print(trailer + "Generation:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
+                    //System.out.print(trailer + "Generation:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
                 }
-                System.out.println("\nMax Fitness Index = " + maxFitnessIndex);
+                //System.out.println("\nMax Fitness Index = " + maxFitnessIndex);
 
                 //terminate threads
                 for(GeneticThread gt:geneticThreads) gt.interrupt();
@@ -77,13 +77,13 @@ public class Generator {
                 if (stagnantCount > stagnantTerminationCount && !stopped)
                     onResultListener.onError("Couldn't find stable time table with given constraints");
                 else {
-                    System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
+                    //System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
                     Scanner sc = populationStorage.getChromosomeReader(maxFitnessIndex);
                     ScheduleSolution.getInstance().parseChromo(sc, subjectCodeArray, teacherNameArray, practicalRoomCodeArray);
                     onResultListener.onResult();
                 }
             } catch (IOException e) {
-                System.out.println(e);
+                //System.out.println(e);
                 e.printStackTrace();
                 onResultListener.onError(e.getMessage());
             }
@@ -115,9 +115,9 @@ public class Generator {
 
         this.indexOfRoom = preComputation.getIndexOfRoom();
 
-        System.out.println(Arrays.toString(subjectCodeArray));
-        System.out.println(Arrays.toString(teacherNameArray));
-        System.out.println(Arrays.toString(practicalRoomCodeArray));
+        //System.out.println(Arrays.toString(subjectCodeArray));
+        //System.out.println(Arrays.toString(teacherNameArray));
+        //System.out.println(Arrays.toString(practicalRoomCodeArray));
 
         for (int i = 0; i < teachersForSubjects.length; i++)
             if (teachersForSubjects[i].isEmpty() && !subjectDao.get(subjectCodeArray[i]).isFree()) {
@@ -457,7 +457,7 @@ public class Generator {
                         sc2 = prevPopulationStorage.getChromosomeReader(ind2);
                         ps = populationStorage.getChromosomeWriter(ind);
                     } catch (IOException e) {
-                        System.out.println(e);
+                        //System.out.println(e);
                         throw new RuntimeException(e);
                     }
                     for (int i = 0; i < subjectCodeArray.length && !stopped; i++) {

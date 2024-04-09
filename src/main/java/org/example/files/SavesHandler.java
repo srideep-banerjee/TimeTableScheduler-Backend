@@ -211,7 +211,7 @@ public class SavesHandler {
     }
 
     private static String rectifyCurrentSaved() {
-        System.out.println("Rectifying Current saved");
+        //System.out.println("Rectifying Current saved");
         String[] saveList = getSaveList();
 
         if (saveList.length == 0) {

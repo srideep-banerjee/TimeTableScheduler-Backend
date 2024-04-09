@@ -24,7 +24,7 @@ public class Main {
             ProcessBuilder processBuilder =new ProcessBuilder("java", "-jar", "TTSBrowserComponent.jar", ls.getDefaultURL(), TokenManager.token);
             Process p= processBuilder.start();
             p.waitFor();
-            System.out.println("Process exited with code "+p.exitValue());
+            ////System.out.println("Process exited with code "+p.exitValue());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

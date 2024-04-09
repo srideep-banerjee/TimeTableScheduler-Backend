@@ -48,7 +48,7 @@ public class ApiHandler implements HttpHandler {
         }
         String requestMethod = exchange.getRequestMethod();
         String querys = exchange.getRequestURI().getQuery();
-        System.out.println(requestMethod + " " + path + (querys != null ? "?" + querys : ""));
+        //System.out.println(requestMethod + " " + path + (querys != null ? "?" + querys : ""));
         if (requestMethod.equals("OPTIONS")) {
             sendPreflightResponse(exchange);
             return;

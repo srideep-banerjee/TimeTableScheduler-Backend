@@ -3,6 +3,7 @@ package org.example.network;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.example.DefaultConfig;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -11,19 +12,19 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class LocalServer {
-    private final String homeHtml = "index.html";
     private HttpServer server;
-    private int port = 9000;
+    private int port = DefaultConfig.STARTING_PORT;
 
     public LocalServer() {
         Random random = new Random();
         while (true) {
             try {
+                port = (port == -1 ? random.nextInt(5000, 65535) : port);
                 this.server = HttpServer.create(new InetSocketAddress(port), 0);
                 break;
             } catch (IOException e) {
                 this.port = random.nextInt(5000, 65535);
-                System.out.println("Port " + port + " unavailable trying port " + port);
+                //System.out.println("Port " + port + " unavailable trying port " + port);
             }
         }
 
@@ -34,7 +35,7 @@ public class LocalServer {
 
         //start server
         server.start();
-        System.out.println("Server started on port " + this.port);
+        //System.out.println("Server started on port " + this.port);
 
     }
 
@@ -76,7 +77,7 @@ public class LocalServer {
                 os.write(bytes);
                 os.close();
             } catch (IOException e) {
-                System.out.println(e);
+                //System.out.println(e);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -100,7 +101,7 @@ public class LocalServer {
             os.write(bytes);
             os.close();
         } catch (Exception e) {
-            System.out.println(e);
+            //System.out.println(e);
         }
     }
 
