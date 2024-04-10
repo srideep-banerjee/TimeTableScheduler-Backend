@@ -60,10 +60,6 @@ public class ApiHandler implements HttpHandler {
         } else if (path.equals("/io/teachers")) {
             switch (requestMethod) {
                 case "GET" -> {
-                    if (TeacherDao.getInstance().isEmpty()) {
-                        sendTextResponse(exchange, 404, "No teachers found");
-                        return;
-                    }
                     try {
                         String response = objectMapper.writeValueAsString(TeacherDao.getInstance());
                         sendJsonResponse(exchange, 200, response);
@@ -168,10 +164,6 @@ public class ApiHandler implements HttpHandler {
         } else if (path.equals("/io/subjects")) {
             switch (requestMethod) {
                 case "GET" -> {
-                    if (SubjectDao.getInstance().isEmpty()) {
-                        sendTextResponse(exchange, 404, "No subjects found");
-                        return;
-                    }
                     try {
                         String response = objectMapper.writeValueAsString(SubjectDao.getInstance());
                         sendJsonResponse(exchange, 200, response);
