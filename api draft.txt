@@ -14,9 +14,9 @@ delete teachers/{teacherName} -done response:"Request accepted"
 
 
 
-get subjects -done response format:["subcode1":{"sem":1,"lectureCount":4,"isPractical":false,"roomCode":"LH-123"}]
+get subjects -done response format:["subcode1":{"sem":1,"lectureCount":4,"isPractical":false,"roomCodes":["LH-123","LAB-7,8"]}]
 
-put subjects -done request format:["subcode1":{"sem":1,"lectureCount":4,"isPractical":false,"roomCode":"LH-123"}]
+put subjects -done request format:["subcode1":{"sem":1,"lectureCount":4,"isPractical":false,"roomCodes":["LH-123","LAB-7,8"]}]
 
 delete subjects -done response: "Request accepted"
 
@@ -34,7 +34,7 @@ get schedule -done response format= 5 dimensional array of format [semester][sec
 
 put schedule -done request format: same as get schedule response body format. querys:- sem(mandatory): semester in which schedule is updated; sec(mandatory): section in which schedule is updated.
 
-get schedule/teacher/{teacher name} -done response format = 3 dimensional array of format [day][period][]=new String[]{}
+get schedule/teacher/{teacher name} -done response format = 3 dimensional array of format [day][period][]=new String[]{"semester","section","subject code"}
 
 
 
