@@ -215,10 +215,9 @@ public class ScheduleSolution {
         this.data = data;
     }
 
-    public List<List<List<String>>> getData(int semester, int section) {
-        semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
+    public List<List<List<String>>> getData(int year, int section) {
         try {
-            return this.data.get(semester - 1).get(section - 1);
+            return this.data.get(year - 1).get(section - 1);
         } catch (RuntimeException e) {
             return null;
         }
@@ -255,10 +254,9 @@ public class ScheduleSolution {
         return null;
     }
 
-    public List<List<List<List<String>>>> getData(int semester) {
-        semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
+    public List<List<List<List<String>>>> getData(int year) {
         try {
-            return this.data.get(semester - 1);
+            return this.data.get(year - 1);
         } catch (Exception e) {
             return null;
         }

@@ -260,7 +260,6 @@ public class ApiHandler implements HttpHandler {
             }
         } else if (path.equals("/io/schedule")) {
             boolean generateNew = false;
-            int sem = -1;
             int sec = -1;
             int year = -1;
             if (querys != null) {
@@ -270,7 +269,6 @@ public class ApiHandler implements HttpHandler {
                     try {
                         switch (entry[0]) {
                             case "generatenew" -> generateNew = entry[1].equals("true");
-                            case "sem" -> sem = Integer.parseInt(entry[1]);
                             case "sec" -> sec = Integer.parseInt(entry[1]);
                             case "year" -> year = Integer.parseInt(entry[1]);
                             default -> {
@@ -311,19 +309,19 @@ public class ApiHandler implements HttpHandler {
                             sendTextResponse(exchange, 404, "Schedule is empty");
                             return;
                         }
-                        if (sem != -1 && sec != -1) {
+                        if (year != -1 && sec != -1) {
                             String response = "null";
                             try {
-                                response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData(sem, sec));
+                                response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData(year, sec));
                             } catch (JsonProcessingException e) {
                                 e.printStackTrace();
                             }
                             if (response.equals("null")) sendTextResponse(exchange, 400, "Semester or section invalid");
                             else sendJsonResponse(exchange, 200, response);
-                        } else if (sem != -1) {
+                        } else if (year != -1) {
                             String response = "null";
                             try {
-                                response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData(sem));
+                                response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData(year));
                             } catch (JsonProcessingException e) {
                                 e.printStackTrace();
                             }
