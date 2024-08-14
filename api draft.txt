@@ -32,7 +32,7 @@ delete subjects/{subjectCode} -done response: "Request accepted"
 
 get schedule -done response format= 5 dimensional array of format [semester][section][day][period][]=new String[]{"teacherName","subjectCode"} querys:- generatenew(optional): if true generate a new schedule else responses with currently saved schedule; sem(optional if sec not present): To generate or retrieve schedule of one semester; sec(optional): To generate or retrieve schedule of one section in a semester.
 
-put schedule -done request format: same as get schedule response body format. querys:- sem(mandatory): semester in which schedule is updated; sec(mandatory): section in which schedule is updated.
+put schedule -done request format: same as get schedule response body format. querys:- year(mandatory): year in which schedule is updated; sec(mandatory): section in which schedule is updated.
 
 get schedule/teacher/{teacher name} -done response format = 3 dimensional array of format [day][period][]=new String[]{"semester","section","subject code"}
 

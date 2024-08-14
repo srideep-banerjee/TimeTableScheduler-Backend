@@ -262,6 +262,7 @@ public class ApiHandler implements HttpHandler {
             boolean generateNew = false;
             int sem = -1;
             int sec = -1;
+            int year = -1;
             if (querys != null) {
                 querys = querys.toLowerCase();
                 for (String query : querys.split("&")) {
@@ -271,6 +272,7 @@ public class ApiHandler implements HttpHandler {
                             case "generatenew" -> generateNew = entry[1].equals("true");
                             case "sem" -> sem = Integer.parseInt(entry[1]);
                             case "sec" -> sec = Integer.parseInt(entry[1]);
+                            case "year" -> year = Integer.parseInt(entry[1]);
                             default -> {
                                 sendTextResponse(exchange, 400, "Invalid query parameters");
                                 return;
@@ -339,15 +341,22 @@ public class ApiHandler implements HttpHandler {
                 }
                 case "PUT" -> {
                     try {
+                        if (year == -1 || sec == -1) {
+                            sendTextResponse(exchange, 400, "Both year and section must be provided");
+                            return;
+                        }
                         List<List<List<String>>> data = objectMapper.readValue(exchange.getRequestBody(), new TypeReference<>() {
                         });
-                        if (!ScheduleSolution.getInstance().setData(sem, sec, data)) {
-                            sendTextResponse(exchange, 400, "Invalid data format");
+
+                        String error = ScheduleSolution.getInstance().setData(year, sec, data);
+                        if (error != null) {
+                            sendTextResponse(exchange, 400, error);
                             return;
                         }
                         sendTextResponse(exchange, 200, "Request accepted");
                     } catch (Exception e) {
-                        sendTextResponse(exchange, 400, "Invalid data format");
+                        e.printStackTrace();
+                        sendTextResponse(exchange, 400, "Internal Server Error");
                     }
                 }
                 default -> sendInvalidOperationResponse(exchange);

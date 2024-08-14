@@ -224,19 +224,35 @@ public class ScheduleSolution {
         }
     }
 
-    public boolean setData(int semester, int section, List<List<List<String>>> data) {
-        if (section > ScheduleStructure.getInstance().getSectionCount(semester)) return false;
-        semester = (byte) (semester % 2 == 0 ? semester / 2 : (semester + 1) / 2);
-        if (semester > ScheduleStructure.getInstance().getSemesterCount()) return false;
-        if (data.size() != 5) return false;
+    public String setData(int year, int section, List<List<List<String>>> data) {
+        int sectionCount = ScheduleStructure.getInstance().getSectionCount(year * 2);
+        if (section > sectionCount) {
+            return String.format(
+                    "Section: %d is grater than section count: %d for year %d",
+                    section, sectionCount,
+                    year
+            );
+        }
+        int yearCount = ScheduleStructure.getInstance().getSemesterCount();
+        if (year > yearCount) {
+            return String.format("Year: %d is greater than year count: %d", year, yearCount);
+        }
+        if (data.size() != 5) {
+            return String.format("Number of days is %d, but should be equal to 5", data.size());
+        };
+        int periodCount = ScheduleStructure.getInstance().getPeriodCount();
         for (int i = 0; i < 5; i++) {
-            if (data.get(i).size() != ScheduleStructure.getInstance().getPeriodCount()) return false;
-            for (int j = 0; j < ScheduleStructure.getInstance().getPeriodCount(); j++) {
-                if (data.get(i).get(j).size() != 2) return false;
+            if (data.get(i).size() != periodCount) {
+                return String.format("Period count is %d, but should be equal to %d", data.get(i).size(), periodCount);
+            }
+            for (int j = 0; j < periodCount; j++) {
+                if (data.get(i).get(j).size() != 3) {
+                    return String.format("Expecting 3 items per period, got %d", data.get(i).get(j).size());
+                }
             }
         }
-        this.data.get(semester - 1).set(section - 1, data);
-        return true;
+        this.data.get(year - 1).set(section - 1, data);
+        return null;
     }
 
     public List<List<List<List<String>>>> getData(int semester) {
