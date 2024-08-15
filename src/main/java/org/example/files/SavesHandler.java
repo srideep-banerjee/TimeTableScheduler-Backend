@@ -32,23 +32,13 @@ public class SavesHandler implements AutoCloseable {
     }
 
     public void init() throws SQLException, IOException {
-        boolean fileSuccess;
         Files.createDirectories(Path.of("sqlite","data"));
-        fileSuccess = Path.of("sqlite","data","tts-config.db")
-                .toFile()
-                .createNewFile();
-        if (!fileSuccess)
+        File configFile = Path.of("sqlite","data","tts-config.db")
+                .toFile();
+        if (!configFile.exists() &&!configFile.createNewFile())
             throw new IOException("Couldn't create config database");
 
-        connection = DriverManager.getConnection("jdbc:sqlite:");
-        Statement statement = connection.createStatement();
-        statement.execute("ATTACH DATABASE 'tts-config.db' as config");
-        try (ResultSet set = statement.executeQuery("SELECT * FROM pragma_database_list")) {
-            System.out.println("Conenected databases are:");
-            while(set.next()) {
-                System.out.println(set.getString("name")+" -> "+set.getString("file"));
-            }
-        }
+        connection = DriverManager.getConnection("jdbc:sqlite:sqlite/data/tts-config.db");
     }
 
     @Override
