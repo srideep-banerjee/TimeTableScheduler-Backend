@@ -5,11 +5,18 @@ import org.example.network.LocalServer;
 import org.example.network.TokenManager;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class Main {
     static LocalServer ls;
 
     public static void main(String[] args) {
+        System.setProperty("org.sqlite.tmpdir","sqlite");
+        try(SavesHandler savesHandler = SavesHandler.getInstance()) {
+            savesHandler.init();
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
+        }
         ls = new LocalServer();
 
         String saveName = SavesHandler.getCurrentSave();

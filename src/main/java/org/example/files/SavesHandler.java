@@ -13,9 +13,48 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.*;
 import java.util.*;
 
-public class SavesHandler {
+public class SavesHandler implements AutoCloseable {
+    private static SavesHandler instance;
+    private Connection connection;
+
+    private SavesHandler() {}
+
+    public static SavesHandler getInstance() {
+        if (instance == null) {
+            instance = new SavesHandler();
+        }
+        return instance;
+    }
+
+    public void init() throws SQLException, IOException {
+        boolean fileSuccess;
+        Files.createDirectories(Path.of("sqlite","data"));
+        fileSuccess = Path.of("sqlite","data","tts-config.db")
+                .toFile()
+                .createNewFile();
+        if (!fileSuccess)
+            throw new IOException("Couldn't create config database");
+
+        connection = DriverManager.getConnection("jdbc:sqlite:");
+        Statement statement = connection.createStatement();
+        statement.execute("ATTACH DATABASE 'tts-config.db' as config");
+        try (ResultSet set = statement.executeQuery("SELECT * FROM pragma_database_list")) {
+            System.out.println("Conenected databases are:");
+            while(set.next()) {
+                System.out.println(set.getString("name")+" -> "+set.getString("file"));
+            }
+        }
+    }
+
+    @Override
+    public void close() throws SQLException {
+        connection.close();
+    }
 
     public static String newEmptySave(String name) {
         if (name.equals("null")) return "Can't use name '" + name + "'";
