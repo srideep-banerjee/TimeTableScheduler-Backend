@@ -93,7 +93,7 @@ public class ChromosomeAnalyzer {
 
     public boolean isTeacherAvailable(DayPeriod dayPeriod, short teacherIndex) {
         Teacher teacher = TeacherDao.getInstance().get(teacherNameArray[teacherIndex]);
-        if (!teacher.getFreeTime().isEmpty() && !teacher.getFreeTime().contains(new int[]{dayPeriod.day, dayPeriod.period}))
+        if (!teacher.getFreeTime().isEmpty() && !teacher.getFreeTime().contains(Arrays.asList(dayPeriod.day, dayPeriod.period)))
             return false;
         return !teacherTimeAllocationTable.containsKey(new TeacherTimeSlot(dayPeriod, teacherIndex));
     }

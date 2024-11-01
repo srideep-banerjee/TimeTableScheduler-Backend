@@ -323,7 +323,7 @@ public class Generator {
                     if (sub.isFree()) continue;
 
                     //evaluating h2
-                    if (!teacherDao.get(teacher).getFreeTime().contains(new int[]{day, period}) && !teacherDao.get(teacher).getFreeTime().isEmpty())
+                    if (!teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day, period)) && !teacherDao.get(teacher).getFreeTime().isEmpty())
                         hCount++;
 
                     //evaluating h4
