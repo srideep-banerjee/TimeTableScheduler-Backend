@@ -7,10 +7,10 @@ import java.util.*;
 @JsonPropertyOrder({"freeTime", "subjects"})
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public class Teacher {
-    private final HashSet<int[]> freeTime;
+    private final HashSet<List<Integer>> freeTime;
     private final HashSet<String> subjects;
 
-    public Teacher(@JsonProperty("freeTime") HashSet<int[]> freeTime, @JsonProperty("subjects") HashSet<String> subjects) {
+    public Teacher(@JsonProperty("freeTime") HashSet<List<Integer>> freeTime, @JsonProperty("subjects") HashSet<String> subjects) {
         this.freeTime = freeTime;
         this.subjects = subjects;
     }
@@ -28,7 +28,7 @@ public class Teacher {
     }
 
     @JsonGetter("freeTime")
-    public HashSet<int[]> getFreeTime() {
+    public HashSet<List<Integer>> getFreeTime() {
         return freeTime;
     }
 
