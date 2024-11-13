@@ -27,7 +27,7 @@ public class Generator {
     private HashMap<String, Short> indexOfSubject = null;
     private ArrayList<Integer>[] teachersForSubjects = null;
     private PopulationStorage populationStorage;
-    private ArrayList<GeneticThread> geneticThreads=null;
+    private ArrayList<GeneticThread> geneticThreads = new ArrayList<>();
     private final float[] fitness;
     private final Integer[] selectedIndices;
     private float averageFitness = 0;
@@ -38,7 +38,7 @@ public class Generator {
     SubjectDao subjectDao = SubjectDao.getInstance();
     TeacherDao teacherDao = TeacherDao.getInstance();
     ScheduleStructure scheduleData = ScheduleStructure.getInstance();
-    boolean stopped = false;
+    volatile boolean stopped = false;
 
     public Generator(OnResultListener onResultListener) {
         fitness = new float[populationSize];
@@ -71,8 +71,7 @@ public class Generator {
                 }
                 //System.out.println("\nMax Fitness Index = " + maxFitnessIndex);
 
-                //terminate threads
-                for(GeneticThread gt:geneticThreads) gt.interrupt();
+                stop();
 
                 if (stagnantCount > stagnantTerminationCount && !stopped)
                     onResultListener.onError("Couldn't find stable time table with given constraints");
@@ -86,6 +85,7 @@ public class Generator {
                 //System.out.println(e);
                 e.printStackTrace();
                 onResultListener.onError(e.getMessage());
+                stop();
             }
         }).start();
     }
@@ -123,6 +123,7 @@ public class Generator {
             if (teachersForSubjects[i].isEmpty() && !subjectDao.get(subjectCodeArray[i]).isFree()) {
                 onResultListener.onError("Subject: " + subjectCodeArray[i] + " is not free and has no teacher");
                 stop();
+                return;
             }
 
         HashMap<Integer, Short> totalPeriodCounts = new HashMap<>();
@@ -135,6 +136,7 @@ public class Generator {
             if(entry.getValue() > numberOfPeriods * 5) {
                 onResultListener.onError("Total lecture count in Semester: " + entry.getKey() + " exceeds total period count by " + (entry.getValue() - numberOfPeriods * 5));
                 stop();
+                return;
             }
         }
     }
@@ -619,5 +621,6 @@ public class Generator {
 
     public void stop() {
         this.stopped = true;
+        for(GeneticThread gt:geneticThreads) gt.interrupt();
     }
 }
