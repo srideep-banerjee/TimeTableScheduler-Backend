@@ -1,5 +1,3 @@
-package org.example;
-
 import org.example.algorithms.ChromosomeAnalyzer;
 import org.example.algorithms.DayPeriod;
 import org.example.algorithms.PreComputation;

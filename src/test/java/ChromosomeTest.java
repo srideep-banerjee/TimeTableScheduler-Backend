@@ -1,5 +1,3 @@
-package org.example;
-
 import org.example.algorithms.DayPeriod;
 import org.example.algorithms.Util;
 import org.example.algorithms.io.PopulationStorage;
