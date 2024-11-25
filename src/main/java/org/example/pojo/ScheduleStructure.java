@@ -10,6 +10,9 @@ import org.example.dao.json.Byte2DArraySerializer;
 
 import java.util.Arrays;
 
+/**
+ * A singleton class to store the current schedule structure
+ */
 @JsonPropertyOrder({"semesterCount", "sectionsPerSemester", "periodCount", "breaksPerSemester"})
 public class ScheduleStructure {
     @JsonProperty("sectionsPerSemester")
@@ -30,13 +33,23 @@ public class ScheduleStructure {
     @JsonIgnore
     public static ScheduleStructure getInstance() {
         if (instance == null) {
-            instance = new ScheduleStructure();
-            instance.semesterCount = 4;
-            instance.sectionsPerSemester = new byte[]{0, 0, 1, 0};
-            instance.periodCount = 9;
-            instance.breaksPerSemester = new byte[][]{{4, 5}, {5}, {5}, {5}};
+            instance = getRevertedClone();
         }
         return instance;
+    }
+
+    /**
+     * Used to easily get a new schedule structure with values reset to defaults</br>
+     * @return A new {@code ScheduleStructure} that is independent of the current instance
+     */
+    @JsonIgnore
+    public static ScheduleStructure getRevertedClone() {
+        ScheduleStructure scheduleStructure = new ScheduleStructure();
+        scheduleStructure.semesterCount = 4;
+        scheduleStructure.sectionsPerSemester = new byte[] {0, 0, 1, 0};
+        scheduleStructure.periodCount = 9;
+        scheduleStructure.breaksPerSemester = new byte[][]{{4, 5}, {5}, {5}, {5}};
+        return scheduleStructure;
     }
 
     @JsonIgnore
