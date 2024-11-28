@@ -1,4 +1,4 @@
-package org.example.network;
+package org.example.network.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -14,6 +14,7 @@ import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.files.SavesHandler;
 import org.example.interfaces.OnResultListener;
+import org.example.network.TokenManager;
 import org.example.pojo.ScheduleSolution;
 import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
