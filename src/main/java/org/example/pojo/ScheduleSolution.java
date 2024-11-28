@@ -1,9 +1,10 @@
 package org.example.pojo;
 
-import org.example.algorithms.DayPeriod;
+import org.example.algorithms.io.ChromosomeReader;
 import org.example.dao.SubjectDao;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ScheduleSolution {
 
@@ -22,6 +23,10 @@ public class ScheduleSolution {
         return instance;
     }
 
+    /**
+     * Empties the schedule by setting all entries to null without modifying
+     * schedule solution structure
+     */
     public void resetData() {
         empty = true;
         ScheduleStructure ss = ScheduleStructure.getInstance();
@@ -47,93 +52,170 @@ public class ScheduleSolution {
         }
     }
 
+    /**
+     * Updates the schedule solution structure according to current schedule structure
+     * by truncating values or adding null values
+     */
     public void updateStructure() {
         ScheduleStructure ss = ScheduleStructure.getInstance();
         List<List<List<List<List<String>>>>> previousData = data;
         boolean isEmpty = empty;
         resetData();
         empty = isEmpty;
-        for (int i = 0; i < ss.getSemesterCount() && i < previousData.size(); i++) {
-            for (int j = 0; j < ss.getSectionCount(i * 2 + 1) && j < previousData.get(i).size(); j++) {
-                for (int k = 0; k < 5; k++) {
-                    for (int l = 0; l < ss.getPeriodCount() && l < previousData.get(i).get(j).get(k).size(); l++) {
+        for (int year = 0; year < ss.getSemesterCount() && year < previousData.size(); year++) {
+            for (int sec = 0; sec < ss.getSectionCount(year * 2 + 1) && sec < previousData.get(year).size(); sec++) {
+                for (int day = 0; day < 5; day++) {
+                    for (int period = 0; period < ss.getPeriodCount() && period < previousData.get(year).get(sec).get(day).size(); period++) {
                         boolean in = true;
-                        for (byte brk : ss.getBreakLocations(i * 2 + 1)) {
-                            if (brk - 1 == l) {
+                        for (byte brk : ss.getBreakLocations(year * 2 + 1)) {
+                            if (brk - 1 == period) {
                                 in = false;
                                 break;
                             }
                         }
                         if (in)
-                            data.get(i).get(j).get(k).set(l, previousData.get(i).get(j).get(k).get(l));
+                            data.get(year).get(sec).get(day).set(period, previousData.get(year).get(sec).get(day).get(period));
                     }
                 }
             }
         }
     }
 
+    public static class SolutionAccumulator {
+        private final List<List<List<List<List<String>>>>> accumulated;
+
+        public SolutionAccumulator() {
+            // Setting accumulated to an empty solution :
+            var temp = getInstance().data; // creating backup of current solution
+            getInstance().resetData(); // emptying current solution
+            accumulated = getInstance().data; // setting accumulated to current empty solution
+            getInstance().setData(temp); // restoring current solution from backup
+        }
+
+        public void add(
+                int sem,
+                int sec,
+                int day,
+                int period,
+                String subjectCode,
+                String teacherName,
+                String roomCode
+        ) {
+            accumulated.get(sem).get(sec).get(day).set(period, Arrays.asList(teacherName, subjectCode, roomCode));
+        }
+
+        public List<List<List<List<List<String>>>>> accumulate() {
+            SubjectDao subjectDao = SubjectDao.getInstance();
+            Stream<List<List<String>>> linearPeriodDataStream = accumulated
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .flatMap(Collection::stream);
+
+            linearPeriodDataStream.forEach(dayData -> {
+
+                String previousPracticalSubjectCode = null;
+                LinkedHashSet<String> practicalTeachers = new LinkedHashSet<>();
+                ArrayList<List<String>> practicalPeriodList = new ArrayList<>();
+
+                for (List<String> periodData: dayData) {
+                    String teacherName = periodData.get(0);
+                    String subjectCode = periodData.get(1);
+                    Subject subject = subjectDao.get(subjectCode);
+
+                    if (previousPracticalSubjectCode != null) {
+
+                        if (subjectCode != null && subjectCode.equalsIgnoreCase(previousPracticalSubjectCode)) {
+                            practicalTeachers.add(teacherName);
+                            practicalPeriodList.add(periodData);
+
+                        } else {
+                            String presentedTeacherString = String.join("+", practicalTeachers);
+                            for (List<String> practicalPeriod: practicalPeriodList) {
+                                practicalPeriod.set(0, presentedTeacherString);
+                            }
+                            previousPracticalSubjectCode = null;
+                            practicalTeachers.clear();
+                            practicalPeriodList.clear();
+                        }
+                    } else if (subject != null && subject.isPractical() && !subject.isFree()) {
+                        previousPracticalSubjectCode = subjectCode;
+                        practicalTeachers.add(teacherName);
+                        practicalPeriodList.add(periodData);
+                    }
+                }
+                if (previousPracticalSubjectCode != null) {
+                    String presentedTeacherString = String.join("+", practicalTeachers);
+                    for (List<String> practicalPeriod: practicalPeriodList) {
+                        practicalPeriod.set(0, presentedTeacherString);
+                    }
+                }
+            });
+            return accumulated;
+        }
+    }
+
+    public static class SolutionIterator {
+        public final boolean teachersCombined;
+        private final SolutionIteratorCallback iteratorCallback;
+
+        public SolutionIterator(SolutionIteratorCallback iteratorCallback) {
+            teachersCombined = false;
+            this.iteratorCallback = iteratorCallback;
+        }
+
+        public void iterate() {
+            var data = instance.data;
+
+            for (int sem = 0; sem < data.size(); sem++) {
+                var semData = data.get(sem);
+                for (int sec = 0; sec < semData.size(); sec++) {
+                    var secData = semData.get(sec);
+                    for (int day = 0; day < secData.size(); day++) {
+                        var dayData = secData.get(day);
+                        for (int period = 0; period < dayData.size(); period++) {
+                            var periodData = dayData.get(period);
+
+                            String teacher = periodData.get(0);
+                            String subjectCode = periodData.get(1);
+                            String roomCode = periodData.get(2);
+
+                            if (teacher != null && teacher.contains("+")) {
+                                String[] teachers = teacher.split("[+]");
+                                int i = period;
+                                while (i < dayData.size() && dayData.get(i).get(1).equalsIgnoreCase(subjectCode)) {
+                                    dayData.get(i).set(0, teachers[(i++ - period) % teachers.length]);
+                                }
+                            }
+
+                            iteratorCallback.callback(sem, sec, day, period, subjectCode, teacher, roomCode);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public interface SolutionIteratorCallback {
+        void callback(int sem, int sec, int day, int period, String subjectCode, String teacherName, String roomCode);
+    }
+
+    /**
+     * Responsible for parsing a generator chromosome and converting it to a
+     * schedule solution array, updating the current schedule solution
+     * @param sc A scanner reading the file containing the chromosome
+     * @param subjects the array of subject codes to fetch subject code
+     *                 from subject index in chromosome
+     * @param teachers the array of teacher names to fetch teacher name
+     *                 from teacher index in chromosome
+     * @param roomCodes the array of room codes to fetch room code
+     *                  from room index in chromosome
+     */
     public void parseChromo(Scanner sc, String[] subjects, String[] teachers, String[] roomCodes) {
         this.resetData();
-        SubjectDao subjectDao = SubjectDao.getInstance();
-        HashMap<String, List<Short>> practicalPeriods = new HashMap<>();
-        HashMap<String, HashSet<String>> practicalTeachers = new HashMap<>();
-
-        for (String subject : subjects) {
-            byte sem = (byte) subjectDao.get(subject).getSem();
-            byte secCount = ScheduleStructure.getInstance().getSectionCount(sem);
-            sem = (byte) (sem % 2 == 0 ? sem / 2 : (sem + 1) / 2);
-            boolean practical = subjectDao.get(subject).isPractical();
-            boolean free = subjectDao.get(subject).isFree();
-
-            for (byte sec = 0; sec < secCount; sec++) {
-                String teacher = null;
-                short val = -1;
-                short value;
-                String roomCode;
-                if (!practical) {
-                    if (!free) teacher = teachers[sc.nextShort()];
-                    roomCode = subjectDao.get(subject).getRoomCodes().get(0);
-                }
-                else {
-                    val = sc.nextShort();
-                    if (!free) roomCode = roomCodes[sc.nextShort()];
-                    else roomCode = subjectDao.get(subject).getRoomCodes().get(0);
-                }
-                int lectureCount = subjectDao.get(subject).getLectureCount();
-
-                for (int j = 0; j < lectureCount; j++) {
-                    if (practical) {
-                        value = (short) (val + j);
-                        if (!free) {
-                            teacher = teachers[sc.nextShort()];
-                            String key = String.format("%d,%d,%s", sem - 1, sec, subject);
-                            if (!practicalPeriods.containsKey(key)) practicalPeriods.put(key, new ArrayList<>());
-                            practicalPeriods.get(key).add(value);
-                            if (!practicalTeachers.containsKey(key)) practicalTeachers.put(key, new HashSet<>());
-                            practicalTeachers.get(key).add(teacher);
-                        }
-                    } else {
-                        value = sc.nextShort();
-                    }
-                    DayPeriod dayPeriod = new DayPeriod(value);
-                    data.get(sem - 1).get(sec).get(dayPeriod.day).set(dayPeriod.period, Arrays.asList(teacher, subject, roomCode));
-                }
-            }
-            empty = false;
-        }
-        for (String key : practicalPeriods.keySet()) {
-            String[] keyData = key.split(",");
-            String teachersCombined = String.join("+", practicalTeachers.get(key));
-            for (Short value : practicalPeriods.get(key)) {
-                DayPeriod dp= new DayPeriod(value);
-                data.get(Short.parseShort(keyData[0]))
-                        .get(Short.parseShort(keyData[1]))
-                        .get(dp.day)
-                        .get(dp.period)
-                        .set(0, teachersCombined);
-            }
-        }
-
+        SolutionAccumulator solutionAccumulator = new SolutionAccumulator();
+        ChromosomeReader chromosomeReader = new ChromosomeReader(sc, teachers, subjects, roomCodes, solutionAccumulator::add);
+        chromosomeReader.read();
+        setData(solutionAccumulator.accumulate());
         sc.close();
     }
 
@@ -238,7 +320,7 @@ public class ScheduleSolution {
         }
         if (data.size() != 5) {
             return String.format("Number of days is %d, but should be equal to 5", data.size());
-        };
+        }
         int periodCount = ScheduleStructure.getInstance().getPeriodCount();
         for (int i = 0; i < 5; i++) {
             if (data.get(i).size() != periodCount) {
