@@ -172,22 +172,26 @@ public class ScheduleSolution {
                     var secData = semData.get(sec);
                     for (int day = 0; day < secData.size(); day++) {
                         var dayData = secData.get(day);
-                        for (int period = 0; period < dayData.size(); period++) {
-                            var periodData = dayData.get(period);
 
+                        int period = 0;
+                        while (period < dayData.size()) {
+
+                            List<String> periodData = dayData.get(period);
                             String teacher = periodData.get(0);
                             String subjectCode = periodData.get(1);
                             String roomCode = periodData.get(2);
 
                             if (teacher != null && teacher.contains("+")) {
-                                String[] teachers = teacher.split("[+]");
-                                int i = period;
-                                while (i < dayData.size() && dayData.get(i).get(1).equalsIgnoreCase(subjectCode)) {
-                                    dayData.get(i).set(0, teachers[(i++ - period) % teachers.length]);
-                                }
+                                String[] teachersArray = teacher.split("[+]");
+                                for (String splitTeacher: teachersArray)
+                                    iteratorCallback.callback(sem, sec, day, period++, subjectCode, splitTeacher, roomCode);
+                                continue;
                             }
 
-                            iteratorCallback.callback(sem, sec, day, period, subjectCode, teacher, roomCode);
+                            if (subjectCode != null)
+                                iteratorCallback.callback(sem, sec, day, period, subjectCode, teacher, roomCode);
+
+                            period++;
                         }
                     }
                 }
