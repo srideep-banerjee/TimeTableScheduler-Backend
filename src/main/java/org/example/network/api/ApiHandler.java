@@ -13,6 +13,7 @@ import org.example.algorithms.Generator;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.files.SavesHandler;
+import org.example.files.TTSFileException;
 import org.example.interfaces.OnResultListener;
 import org.example.network.TokenManager;
 import org.example.pojo.ScheduleSolution;
@@ -21,6 +22,7 @@ import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
 import java.io.*;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -292,6 +294,7 @@ public class ApiHandler implements HttpHandler {
                                 try {
                                     String response = objectMapper.writeValueAsString(ScheduleSolution.getInstance().getData());
                                     sendJsonResponse(exchange, 200, response);
+                                    SavesHandler.getInstance().markUnsaved();
                                 } catch (JsonProcessingException e) {
                                     e.printStackTrace();
                                 }
@@ -401,53 +404,126 @@ public class ApiHandler implements HttpHandler {
                 sendTextResponse(exchange, 400, "No name provided to create");
                 return;
             }
-            String res = SavesHandler.newEmptySave(querys.substring(5).toUpperCase());
-            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
-            else sendTextResponse(exchange, 400, res);
+            String name = querys.substring(5).toUpperCase();
+            try {
+                SavesHandler.getInstance().createNewSave(name);
+                sendTextResponse(exchange, 200, "Request accepted");
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
+            } catch (SQLException | IOException e) {
+                System.err.println(e);
+                e.printStackTrace();
+                sendTextResponse(exchange, 500, "Internal Server Error");
+            }
+//            String res = SavesHandler.newEmptySave(querys.substring(5).toUpperCase());
+//            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+//            else sendTextResponse(exchange, 400, res);
         } else if (path.equals("/io/saves/load")) {
             if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to load");
                 return;
             }
-            String res = SavesHandler.load(querys.substring(5).toUpperCase());
-            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
-            else sendTextResponse(exchange, 400, res);
+            String name = querys.substring(5).toUpperCase();
+            try {
+                SavesHandler.getInstance().loadData(name);
+                sendTextResponse(exchange, 200, "Request accepted");
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
+            } catch (SQLException | IOException e) {
+                System.err.println(e);
+                e.printStackTrace();
+                sendTextResponse(exchange, 500, "Internal Server Error");
+            }
+//            String res = SavesHandler.load(querys.substring(5).toUpperCase());
+//            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+//            else sendTextResponse(exchange, 400, res);
         } else if (path.equals("/io/saves/save")) {
             if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to save");
                 return;
             }
-            String res = SavesHandler.save(querys.substring(5).toUpperCase());
-            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
-            else sendTextResponse(exchange, 400, res);
+            String name = querys.substring(5).toUpperCase();
+            try {
+                SavesHandler.getInstance().saveData(name);
+                sendTextResponse(exchange, 200, "Request accepted");
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
+            } catch (SQLException | IOException e) {
+                System.err.println(e);
+                e.printStackTrace();
+                sendTextResponse(exchange, 500, "Internal Server Error");
+            }
+//            String res = SavesHandler.save(querys.substring(5).toUpperCase());
+//            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+//            else sendTextResponse(exchange, 400, res);
         } else if (path.equals("/io/saves/delete")) {
             if (querys == null) {
                 sendTextResponse(exchange, 400, "No name provided to delete");
                 return;
             }
-            String res = SavesHandler.delete(querys.substring(5).toUpperCase());
-            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
-            else sendTextResponse(exchange, 400, res);
+            String name = querys.substring(5).toUpperCase();
+            try {
+                SavesHandler.getInstance().deleteData(name);
+                sendTextResponse(exchange, 200, "Request accepted");
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
+            } catch (SQLException | IOException e) {
+                System.err.println(e);
+                e.printStackTrace();
+                sendTextResponse(exchange, 500, "Internal Server Error");
+            }
+//            String res = SavesHandler.delete(querys.substring(5).toUpperCase());
+//            if (res == null) sendTextResponse(exchange, 200, "Request accepted");
+//            else sendTextResponse(exchange, 400, res);
         } else if (path.equals("/io/saves/currentName")) {
-            String res = SavesHandler.getCurrentSave();
-            if (res == null) sendTextResponse(exchange, 400, "null");
-            else sendTextResponse(exchange, 200, res);
+            try {
+                String saveName = SavesHandler.getInstance().getCurrentSaveName();
+                sendTextResponse(exchange, 200, saveName);
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
+            } catch (SQLException | IOException e) {
+                System.err.println(e);
+                e.printStackTrace();
+                sendTextResponse(exchange, 500, "Internal Server Error");
+            }
+//            String res = SavesHandler.getCurrentSave();
+//            if (res == null) sendTextResponse(exchange, 400, "null");
+//            else sendTextResponse(exchange, 200, res);
         } else if (path.equals("/io/saves/list")) {
             try {
-                String response = objectMapper.writeValueAsString(SavesHandler.getSaveList());
+                String response = objectMapper.writeValueAsString(SavesHandler.getInstance().getSavesList());
                 sendJsonResponse(exchange, 200, response);
-            } catch (Exception e) {
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
+            } catch (SQLException | IOException e) {
+                System.err.println(e);
                 e.printStackTrace();
+                sendTextResponse(exchange, 500, "Internal Server Error");
             }
+//            try {
+//                String response = objectMapper.writeValueAsString(SavesHandler.getSaveList());
+//                sendJsonResponse(exchange, 200, response);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
         } else if (path.equals("/io/saves/isSaved")) {
             try {
-                sendTextResponse(exchange, 200, SavesHandler.isSaved()+"");
-            } catch (Exception e) {
-                e.printStackTrace();
+                sendTextResponse(exchange, 200, SavesHandler.getInstance().isSaved() + "");
+            } catch (TTSFileException ex) {
+                sendTextResponse(exchange, 400, ex.getMessage());
             }
-        } else
+//            try {
+//                sendTextResponse(exchange, 200, SavesHandler.isSaved()+"");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+        } else {
             // Handle other HTTP methods or unsupported paths
             sendTextResponse(exchange, 405, "Unsupported request");
+            return;
+        }
+        if (!requestMethod.equals("GET") && !path.startsWith("/io/saves"))
+            SavesHandler.getInstance().markUnsaved();
 
         //}catch(Exception e){
         //    e.printStackTrace();
