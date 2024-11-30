@@ -3,6 +3,7 @@ package org.example.pojo;
 import org.example.algorithms.io.ChromosomeReader;
 import org.example.dao.SubjectDao;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -206,21 +207,17 @@ public class ScheduleSolution {
     /**
      * Responsible for parsing a generator chromosome and converting it to a
      * schedule solution array, updating the current schedule solution
-     * @param sc A scanner reading the file containing the chromosome
-     * @param subjects the array of subject codes to fetch subject code
-     *                 from subject index in chromosome
-     * @param teachers the array of teacher names to fetch teacher name
-     *                 from teacher index in chromosome
-     * @param roomCodes the array of room codes to fetch room code
-     *                  from room index in chromosome
+     * @param chromosomeReader A ChromosomeReader reading the chromosome
      */
-    public void parseChromo(Scanner sc, String[] subjects, String[] teachers, String[] roomCodes) {
+    public void parseChromo(ChromosomeReader chromosomeReader) {
         this.resetData();
         SolutionAccumulator solutionAccumulator = new SolutionAccumulator();
-        ChromosomeReader chromosomeReader = new ChromosomeReader(sc, teachers, subjects, roomCodes, solutionAccumulator::add);
-        chromosomeReader.read();
+        try (chromosomeReader) {
+            chromosomeReader.readAll(solutionAccumulator::add);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         setData(solutionAccumulator.accumulate());
-        sc.close();
     }
 
     public void removeAllTeachers() {
