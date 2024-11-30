@@ -1,6 +1,7 @@
 package org.example.algorithms;
 
 import org.example.DefaultConfig;
+import org.example.algorithms.io.ChromosomeReader;
 import org.example.algorithms.io.PopulationStorage;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
@@ -14,7 +15,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class Generator {
-    private final int populationSize = 400;
+    private final int populationSize = 200;
     private final int tournamentSize = 5;
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;
@@ -25,6 +26,7 @@ public class Generator {
     private String[] practicalRoomCodeArray = null;
     private HashMap<String, Short> indexOfRoom = null;
     private HashMap<String, Short> indexOfSubject = null;
+    private HashMap<String, Short> indexOfTeacher = null;
     private ArrayList<Integer>[] teachersForSubjects = null;
     private PopulationStorage populationStorage;
     private ArrayList<GeneticThread> geneticThreads = new ArrayList<>();
@@ -78,7 +80,7 @@ public class Generator {
                 else {
                     System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
                     Scanner sc = populationStorage.getChromosomeReader(maxFitnessIndex);
-                    ScheduleSolution.getInstance().parseChromo(sc, subjectCodeArray, teacherNameArray, practicalRoomCodeArray);
+                    ScheduleSolution.getInstance().parseChromo(new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, practicalRoomCodeArray));
                     onResultListener.onResult();
                 }
             } catch (IOException e) {
@@ -110,6 +112,8 @@ public class Generator {
         this.indexOfSubject = preComputation.getIndexOfSubject();
 
         this.teachersForSubjects = preComputation.getTeachersForSubjects();
+
+        this.indexOfTeacher = preComputation.getIndexOfTeacher();
 
         this.practicalRoomCodeArray = preComputation.getPracticalRoomCodes();
 
@@ -262,8 +266,7 @@ public class Generator {
     }
 
     private int[] countConstraintViolation(int index) throws IOException {
-        int hCount = 0;
-        int sCount = 0;
+        final int[] violationCount = {0, 0}; // { hard violation count, soft violation count }
 
         HashSet<String> h4 = new HashSet<>();
 
@@ -279,90 +282,58 @@ public class Generator {
 
         Scanner sc = populationStorage.getChromosomeReader(index);
 
-        OuterLoop:
-        for (short subjectIndex = 0; subjectIndex < subjectCodeArray.length; subjectIndex++) {
-            String subject = subjectCodeArray[subjectIndex];
-            Subject sub = subjectDao.get(subject);
-            short semester = (short) sub.getSem();
-            byte secCount = scheduleData.getSectionCount(semester);
-            int lectureCount = sub.getLectureCount();
+        try (ChromosomeReader chromosomeReader = new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, practicalRoomCodeArray)) {
 
-            for (short section = 1; section <= secCount; section++) {
-                short teacherIndex = -1;
-                short val = -1;
-                short value;
-                String teacher = null;
-                String roomCode = null;
-                if (sub.isPractical()) {
-                    val = sc.nextShort();
-                    roomCode = sub.isFree()? null : practicalRoomCodeArray[sc.nextShort()];
-                } else if (!sub.isFree())  {
-                    teacherIndex = sc.nextShort();
-                    teacher = teacherNameArray[teacherIndex];
+            chromosomeReader.readAll((semester, section, day, period, subject, teacher, roomCode) -> {
+                Subject sub = subjectDao.get(subject);
+
+                //evaluating h6
+                String key = String.format("%d,%d,%d,%d", day, period, semester, section);
+                if (h6.contains(key)) violationCount[0]++;
+                else h6.add(key);
+
+                //none other constraints required if subject is free
+                if (sub.isFree()) return;
+
+                short teacherIndex = indexOfTeacher.get(teacher);
+
+                //evaluating h2
+                if (!teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day, period)) && !teacherDao.get(teacher).getFreeTime().isEmpty())
+                    violationCount[0]++;
+
+                //evaluating h4
+                if (subjectDao.get(subject).isPractical()) {
+                    key = String.format("%d,%d,%s", day, period, roomCode);
+                    if (h4.contains(key)) violationCount[0]++;
+                    else h4.add(key);
                 }
 
-                for (int j = 0; j < lectureCount; j++) {
-                    if (stopped) break OuterLoop;
-                    if (sub.isPractical()) {
-                        if (!sub.isFree()) {
-                            teacherIndex = sc.nextShort();
-                            teacher = teacherNameArray[teacherIndex];
-                        }
-                        value = (short) (val + j);
-                    } else {
-                        value = sc.nextShort();
-                    }
-                    DayPeriod dp= new DayPeriod(value);
-                    short period = (short) (dp.period + 1);
-                    short day = (short) (dp.day + 1);
-
-                    //evaluating h6
-                    String key = String.format("%d,%d,%d,%d", day, period, semester, section);
-                    if (h6.contains(key)) hCount++;
-                    else h6.add(key);
-
-                    //none other constraints required if subject is free
-                    if (sub.isFree()) continue;
-
-                    //evaluating h2
-                    if (!teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day, period)) && !teacherDao.get(teacher).getFreeTime().isEmpty())
-                        hCount++;
-
-                    //evaluating h4
-                    if (subjectDao.get(subject).isPractical()) {
-                        key = String.format("%d,%d,%s", day, period, roomCode);
-                        if (h4.contains(key)) hCount++;
-                        else h4.add(key);
-                    }
-
-                    //evaluating h5
-                    else {
-                        key = String.format("%d,%s", section, subject);
-                        /*if (!h5.containsKey(key)) */
-                        h5.put(key, teacherIndex);
-                        //else if (h5.get(key) != teacherIndex) count++;
-                    }
-
-                    //evaluating h7
-                    key = String.format("%d,%d,%d", teacherIndex, day, period);
-                    if (h7.contains(key)) hCount++;
-                    else h7.add(key);
-
-                    //processing h8, h9, h12, h13 and s1
-                    if (subjectDao.get(subject).isPractical()) {
-                        key = String.format("%d,%s", section, subject);
-                        if (!h89.containsKey(key))
-                            h89.put(key, new ArrayList<>());
-                        h89.get(key).add(new short[]{day, period, teacherIndex});
-                    }
-
-                    //processing h10
-                    h10[teacherIndex] = true;
+                //evaluating h5
+                else {
+                    key = String.format("%d,%s", section, subject);
+                    /*if (!h5.containsKey(key)) */
+                    h5.put(key, teacherIndex);
+                    //else if (h5.get(key) != teacherIndex) count++;
                 }
-            }
+
+                //evaluating h7
+                key = String.format("%d,%d,%d", teacherIndex, day, period);
+                if (h7.contains(key)) violationCount[0]++;
+                else h7.add(key);
+
+                //processing h8, h9, h12, h13 and s1
+                if (subjectDao.get(subject).isPractical()) {
+                    key = String.format("%d,%s", section, subject);
+                    if (!h89.containsKey(key))
+                        h89.put(key, new ArrayList<>());
+                    h89.get(key).add(new short[]{day, period, teacherIndex});
+                }
+
+                //processing h10
+                h10[teacherIndex] = true;
+            });
+
         }
-
-        sc.close();
 
         //evaluating h8, h9, h12 and h13
         for (var entries : h89.entrySet()) {
@@ -374,47 +345,34 @@ public class Generator {
             sb.setCharAt(sb.length() - 2, '0');
             boolean hasTheory = SubjectDao.getInstance().containsKey(sb.toString());
 
-            //finding count of slot with different days
-            /*float sum = 0;
-            for (short[] slot : slots) sum += slot[0];
-            float mean = sum / slots.size();
-            sum = 0;
-            for (short[] slot : slots) sum += Math.abs(slot[0] - mean);
-            count += Math.round(sum);*/
-
             slots.sort(Comparator.comparingInt(a -> a[1]));
-
-            //evaluating h8
-            /*
-            for (byte i = 1; i < slots.size(); i++)
-                if (slots.get(i)[1] - 1 != slots.get(i - 1)[1]) count++;*/
 
             for (short[] slot : slots) teachers.add(slot[2]);
 
             //evaluating h12
-            if (hasTheory && !teachers.contains(h5.get(key.substring(0, key.indexOf(',')) + "," + sb))) hCount++;
+            if (hasTheory && !teachers.contains(h5.get(key.substring(0, key.indexOf(',')) + "," + sb))) violationCount[0]++;
 
             //evaluating h9
             for (Short teacherIndex : teachers) {
                 for (short[] slot : slots) {
                     if (slot[2] == teacherIndex) continue;
-                    if (h7.contains(String.format("%d,%d,%d", teacherIndex, slot[0], slot[1]))) hCount++;
+                    if (h7.contains(String.format("%d,%d,%d", teacherIndex, slot[0], slot[1]))) violationCount[0]++;
                 }
             }
 
             //evaluating h13
-            hCount += Math.abs(slots.size() - teachers.size());
+            violationCount[0] += Math.abs(slots.size() - teachers.size());
 
             //evaluating s1
             if(slots.get(0)[1] != Util.getPracticalStartingPeriodLocation(key.substring(key.indexOf(',') + 1)))
-                sCount++;
+                violationCount[1]++;
         }
 
         //evaluating h10
         for (boolean b : h10)
-            if (!b) hCount++;
+            if (!b) violationCount[0]++;
 
-        return new int[]{hCount, sCount};
+        return violationCount;
     }
 
     private void selectParents() {
