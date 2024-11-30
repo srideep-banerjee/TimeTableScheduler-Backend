@@ -48,12 +48,20 @@ public class ChromosomeReader implements Closeable {
         return ScheduleStructure.getInstance().getSectionCount(subject.getSem());
     }
 
+    /**
+     * Returns whether there is more data in the chromosome that can be read
+     * @return {@code true} if there is more data to be read otherwise {@code false}
+     */
     public boolean hasNext() {
         while (subjectIndex < subjects.length && getSectionCount(subjects[subjectIndex]) == 0)
             subjectIndex++;
         return subjectIndex < subjects.length;
     }
 
+    /**
+     * Reads a single entry of the chromosome and calls {@code process()} function of the
+     * provided {@code ReaderCallback}
+     */
     public void read(ReaderCallback readerCallback) throws IOException {
         if (!hasNext()) throw new IOException("End of chromosome reached");
 
@@ -97,11 +105,53 @@ public class ChromosomeReader implements Closeable {
 
     /**
      * Reads the entire chromosome and calls {@code process()} function of the
-     * provided {@code ReaderCallback}
+     * provided {@code ReaderCallback}<br>
+     * Note: This function should be preferred over {@code read()} when
+     * reading the entire chromosome as this function is more efficient due to caching of data
+     * @param readerCallback the callback to pass chromosome data back to the caller
      */
     public void readAll(ReaderCallback readerCallback) throws IOException {
-        while (hasNext()) {
-            read(readerCallback);
+        if (!hasNext()) throw new IOException("End of chromosome reached");
+
+        SubjectDao subjectDao = SubjectDao.getInstance();
+
+        for (int subjectIndex = this.subjectIndex; subjectIndex < subjects.length; subjectIndex++) {
+            String subject = subjects[subjectIndex];
+            byte sem = (byte) subjectDao.get(subject).getSem();
+            byte secCount = ScheduleStructure.getInstance().getSectionCount(sem);
+            sem = (byte) (sem % 2 == 0 ? sem / 2 : (sem + 1) / 2);
+            boolean practical = subjectDao.get(subject).isPractical();
+            boolean free = subjectDao.get(subject).isFree();
+
+            byte sec = subjectIndex == this.subjectIndex ? currentSec : 0;
+            for (;sec < secCount; sec++) {
+                String teacher = null;
+                short practicalStartDayPeriod = -1;
+                short dayPeriod;
+                String roomCode;
+                if (!practical) {
+                    if (!free) teacher = teachers[sc.nextShort()];
+                    roomCode = subjectDao.get(subject).getRoomCodes().get(0);
+                }
+                else {
+                    practicalStartDayPeriod = sc.nextShort();
+                    if (!free) roomCode = rooms[sc.nextShort()];
+                    else roomCode = subjectDao.get(subject).getRoomCodes().get(0);
+                }
+                int lectureCount = subjectDao.get(subject).getLectureCount();
+
+                int lectureIndex = subjectIndex == this.subjectIndex && sec == currentSec ? this.lectureIndex : 0;
+                for (;lectureIndex < lectureCount; lectureIndex++) {
+                    if (practical) {
+                        dayPeriod = (short) (practicalStartDayPeriod + lectureIndex);
+                        if (!free) teacher = teachers[sc.nextShort()];
+                    } else {
+                        dayPeriod = sc.nextShort();
+                    }
+                    DayPeriod dayPeriodObj = new DayPeriod(dayPeriod);
+                    readerCallback.process((byte) (sem - 1), sec, dayPeriodObj.day, dayPeriodObj.period, subject, teacher, roomCode);
+                }
+            }
         }
     }
 
