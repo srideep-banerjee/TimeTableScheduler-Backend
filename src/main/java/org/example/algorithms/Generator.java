@@ -20,12 +20,11 @@ public class Generator {
     private final float crossoverRate = 0.98f;
     private final float mutationRate = 0.05f;
     private final int stagnantTerminationCount = 75;
-    private final int threadCount=4;
+    private final int threadCount = 4;
     private String[] subjectCodeArray = null;
     private String[] teacherNameArray = null;
-    private String[] practicalRoomCodeArray = null;
+    private String[] roomCodesArray = null;
     private HashMap<String, Short> indexOfRoom = null;
-    private HashMap<String, Short> indexOfSubject = null;
     private HashMap<String, Short> indexOfTeacher = null;
     private ArrayList<Integer>[] teachersForSubjects = null;
     private PopulationStorage populationStorage;
@@ -52,17 +51,17 @@ public class Generator {
         stopped = false;
         new Thread(() -> {
             try {
-                long time=System.currentTimeMillis();
+                long time = System.currentTimeMillis();
                 updateVariables();
-                if(stopped) return;
+                if (stopped) return;
                 generateInitialPopulation();
                 float prevMaxFitness = maxFitness;
                 int stagnantCount = 0;
                 calculateFitness();
-                String trailer = DefaultConfig.GENERATOR_LOG_SINGLE_LINE? "\r" : "\n";
+                String trailer = DefaultConfig.GENERATOR_LOG_SINGLE_LINE ? "\r" : "\n";
                 System.out.print("Generation:" + generation + " Stagnant count:" + stagnantCount + " Avg. fitness:" + averageFitness + " Max fitness:" + maxFitness + " Index: " + maxFitnessIndex);
                 while (maxFitness < 1 && stagnantCount <= stagnantTerminationCount && !stopped) {
-                    if(maxFitness == prevMaxFitness) stagnantCount++;
+                    if (maxFitness == prevMaxFitness) stagnantCount++;
                     else stagnantCount = 0;
                     prevMaxFitness = maxFitness;
                     selectParents();
@@ -78,9 +77,9 @@ public class Generator {
                 if (stagnantCount > stagnantTerminationCount && !stopped)
                     onResultListener.onError("Couldn't find stable time table with given constraints");
                 else {
-                    System.out.println("Time taken: "+(System.currentTimeMillis()-time)/1000+" sec");
+                    System.out.println("Time taken: " + (System.currentTimeMillis() - time) / 1000 + " sec");
                     Scanner sc = populationStorage.getChromosomeReader(maxFitnessIndex);
-                    ScheduleSolution.getInstance().parseChromo(new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, practicalRoomCodeArray));
+                    ScheduleSolution.getInstance().parseChromo(new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, roomCodesArray));
                     onResultListener.onResult();
                 }
             } catch (IOException e) {
@@ -93,35 +92,34 @@ public class Generator {
     }
 
     private void updateVariables() {
-        //update teacherNameArray and subjectCodeArray
-        this.subjectCodeArray = subjectDao.keySet().toArray(String[]::new);
-        this.teacherNameArray = teacherDao.keySet().toArray(String[]::new);
 
         //start geneticThreads
-        geneticThreads=new ArrayList<>();
-        int populationPerThread=populationSize/threadCount;
-        for(int i=0;i<threadCount;i++){
-            GeneticThread gt=new GeneticThread(i*populationPerThread,populationPerThread);
+        geneticThreads = new ArrayList<>();
+        int populationPerThread = populationSize / threadCount;
+        for (int i = 0; i < threadCount; i++) {
+            GeneticThread gt = new GeneticThread(i * populationPerThread, populationPerThread);
             geneticThreads.add(gt);
             gt.start();
         }
 
-        PreComputation preComputation = new PreComputation(subjectCodeArray, teacherNameArray);
+        PreComputation preComputation = new PreComputation();
         preComputation.compute();
 
-        this.indexOfSubject = preComputation.getIndexOfSubject();
+        this.subjectCodeArray = preComputation.getSubjectCodes();
+
+        this.teacherNameArray = preComputation.getTeacherNames();
 
         this.teachersForSubjects = preComputation.getTeachersForSubjects();
 
         this.indexOfTeacher = preComputation.getIndexOfTeacher();
 
-        this.practicalRoomCodeArray = preComputation.getPracticalRoomCodes();
+        this.roomCodesArray = preComputation.getRoomCodes();
 
         this.indexOfRoom = preComputation.getIndexOfRoom();
 
         System.out.println(Arrays.toString(subjectCodeArray));
         System.out.println(Arrays.toString(teacherNameArray));
-        System.out.println(Arrays.toString(practicalRoomCodeArray));
+        System.out.println(Arrays.toString(roomCodesArray));
 
         for (int i = 0; i < teachersForSubjects.length; i++)
             if (teachersForSubjects[i].isEmpty() && !subjectDao.get(subjectCodeArray[i]).isFree()) {
@@ -135,9 +133,9 @@ public class Generator {
             short newLectureCount = (short) (totalPeriodCounts.getOrDefault(subject.getSem(), (short) 0) + subject.getLectureCount());
             totalPeriodCounts.put(subject.getSem(), newLectureCount);
         }
-        for (Map.Entry<Integer, Short> entry: totalPeriodCounts.entrySet()) {
+        for (Map.Entry<Integer, Short> entry : totalPeriodCounts.entrySet()) {
             int numberOfPeriods = scheduleData.getPeriodCount() - scheduleData.getBreakLocations(entry.getKey()).length;
-            if(entry.getValue() > numberOfPeriods * 5) {
+            if (entry.getValue() > numberOfPeriods * 5) {
                 onResultListener.onError("Total lecture count in Semester: " + entry.getKey() + " exceeds total period count by " + (entry.getValue() - numberOfPeriods * 5));
                 stop();
                 return;
@@ -147,9 +145,9 @@ public class Generator {
 
     private void generateInitialPopulation() throws IOException {
         populationStorage = new PopulationStorage(generation);
-        for (GeneticThread gt:geneticThreads){
-            gt.perform((index,populationPerThread)->{
-                for (int i = index; i < (index+populationPerThread) && !stopped; i++) {
+        for (GeneticThread gt : geneticThreads) {
+            gt.perform((index, populationPerThread) -> {
+                for (int i = index; i < (index + populationPerThread) && !stopped; i++) {
                     try {
                         generateRandomChromosome(i);
                     } catch (IOException e) {
@@ -227,18 +225,18 @@ public class Generator {
     private void calculateFitness() throws IOException {
         float sum = 0f;
         maxFitness = 0;
-        final Integer[] localMaxFitnessIndex=new Integer[threadCount];
-        final Float[] localSum=new Float[threadCount];
+        final Integer[] localMaxFitnessIndex = new Integer[threadCount];
+        final Float[] localSum = new Float[threadCount];
 
-        Arrays.fill(localSum,0f);
+        Arrays.fill(localSum, 0f);
 
-        for (GeneticThread gt:geneticThreads){
-            gt.perform((index,populationPerThread)->{
+        for (GeneticThread gt : geneticThreads) {
+            gt.perform((index, populationPerThread) -> {
 
-                int threadIndex=index/populationPerThread;
-                localMaxFitnessIndex[threadIndex]=index;
+                int threadIndex = index / populationPerThread;
+                localMaxFitnessIndex[threadIndex] = index;
 
-                for (int i = index; i < (index+populationPerThread) && !stopped; i++) {
+                for (int i = index; i < (index + populationPerThread) && !stopped; i++) {
                     try {
                         int[] violationCount = countConstraintViolation(i);
                         fitness[i] = 1f / (1f + violationCount[0]);
@@ -254,11 +252,11 @@ public class Generator {
             });
         }
         waitForAllThreads();
-        for(int i=0;i<threadCount;i++){
-            sum+=localSum[i];
-            if(fitness[localMaxFitnessIndex[i]]>maxFitness){
-                maxFitnessIndex=localMaxFitnessIndex[i];
-                maxFitness=fitness[maxFitnessIndex];
+        for (int i = 0; i < threadCount; i++) {
+            sum += localSum[i];
+            if (fitness[localMaxFitnessIndex[i]] > maxFitness) {
+                maxFitnessIndex = localMaxFitnessIndex[i];
+                maxFitness = fitness[maxFitnessIndex];
             }
         }
 
@@ -282,7 +280,7 @@ public class Generator {
 
         Scanner sc = populationStorage.getChromosomeReader(index);
 
-        try (ChromosomeReader chromosomeReader = new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, practicalRoomCodeArray)) {
+        try (ChromosomeReader chromosomeReader = new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, roomCodesArray)) {
 
             chromosomeReader.readAll((semester, section, day, period, subject, teacher, roomCode) -> {
                 Subject sub = subjectDao.get(subject);
@@ -350,7 +348,8 @@ public class Generator {
             for (short[] slot : slots) teachers.add(slot[2]);
 
             //evaluating h12
-            if (hasTheory && !teachers.contains(h5.get(key.substring(0, key.indexOf(',')) + "," + sb))) violationCount[0]++;
+            if (hasTheory && !teachers.contains(h5.get(key.substring(0, key.indexOf(',')) + "," + sb)))
+                violationCount[0]++;
 
             //evaluating h9
             for (Short teacherIndex : teachers) {
@@ -364,7 +363,7 @@ public class Generator {
             violationCount[0] += Math.abs(slots.size() - teachers.size());
 
             //evaluating s1
-            if(slots.get(0)[1] != Util.getPracticalStartingPeriodLocation(key.substring(key.indexOf(',') + 1)))
+            if (slots.get(0)[1] != Util.getPracticalStartingPeriodLocation(key.substring(key.indexOf(',') + 1)))
                 violationCount[1]++;
         }
 
@@ -383,14 +382,14 @@ public class Generator {
             }
             selectedIndices[i] = max;
         }
-        if(!stopped)
+        if (!stopped)
             Arrays.sort(selectedIndices, (a, b) -> (fitness[b] - fitness[a]) < 0 ? -1 : (fitness[b] - fitness[a] > 0 ? 1 : 0));
     }
 
     private void generateNewPopulation() throws IOException {
         PopulationStorage prevPopulationStorage = populationStorage;
         populationStorage = new PopulationStorage(generation);
-        final int noCrossLength=2;//Math.round(populationSize * (1 - crossoverRate));
+        final int noCrossLength = 2;//Math.round(populationSize * (1 - crossoverRate));
 
         //copy the top individuals of previous generation as non-crossed individuals
         for (int ii = 0; ii < noCrossLength && !stopped; ii++) {
@@ -403,9 +402,9 @@ public class Generator {
 
         Random random = new Random();
         //add the crossed individuals from any two selected parents with mutation
-        for (GeneticThread gt:geneticThreads){
-            gt.perform((index,populationPerThread)->{
-                for (int ind=noCrossLength+index/populationPerThread; ind < populationSize && !stopped; ind+=threadCount) {
+        for (GeneticThread gt : geneticThreads) {
+            gt.perform((index, populationPerThread) -> {
+                for (int ind = noCrossLength + index / populationPerThread; ind < populationSize && !stopped; ind += threadCount) {
                     //select two random indices to cross
                     int ind1 = selectedIndices[random.nextInt(selectedIndices.length)];
                     int ind2 = selectedIndices[random.nextInt(selectedIndices.length)];
@@ -442,7 +441,7 @@ public class Generator {
                                     ps.println(random.nextBoolean() ? val1 : val2);
                                 }
 
-                                if(!sub.isFree()) {
+                                if (!sub.isFree()) {
                                     short room1 = sc1.nextShort();
                                     short room2 = sc2.nextShort();
                                     if (mutate) {
@@ -571,14 +570,14 @@ public class Generator {
         return random;
     }
 
-    public void waitForAllThreads(){
-        for(int i=0;i<threadCount;i++){
-            while(!geneticThreads.get(i).isCompleted());
+    public void waitForAllThreads() {
+        for (int i = 0; i < threadCount; i++) {
+            while (!geneticThreads.get(i).isCompleted()) ;
         }
     }
 
     public void stop() {
         this.stopped = true;
-        for(GeneticThread gt:geneticThreads) gt.interrupt();
+        for (GeneticThread gt : geneticThreads) gt.interrupt();
     }
 }
