@@ -12,34 +12,34 @@ import java.util.HashSet;
 public class PreComputation {
     private String[] subjectCodeArray;
     private String[] teacherNameArray;
-    private HashMap<String, Short> indexOfSubject;
     private ArrayList<Integer>[] teachersForSubjects;
     private HashMap<String, Short> indexOfTeacher;
-    private String[] practicalRoomCodeArray;
+    private String[] roomCodes;
     private  HashMap<String, Short> indexOfRoom;
     SubjectDao subjectDao = SubjectDao.getInstance();
     TeacherDao teacherDao = TeacherDao.getInstance();
 
-    public PreComputation(String[] subjectCodeArray, String[] teacherNameArray) {
-        this.subjectCodeArray = subjectCodeArray;
-        this.teacherNameArray = teacherNameArray;
-    }
     public void compute() {
+
+        //update teacherNameArray and subjectCodeArray
+        this.subjectCodeArray = subjectDao.keySet().toArray(String[]::new);
+        this.teacherNameArray = teacherDao.keySet().toArray(String[]::new);
+
         //Update practical room code array
-        HashSet<String> roomCodes = new HashSet<>();
+        HashSet<String> roomCodeSet = new HashSet<>();
         for(Subject subject: SubjectDao.getInstance().values()) {
-            roomCodes.addAll(subject.getRoomCodes());
+            roomCodeSet.addAll(subject.getRoomCodes());
         }
-        this.practicalRoomCodeArray = roomCodes.toArray(String[]::new);
+        this.roomCodes = roomCodeSet.toArray(String[]::new);
 
         //Updating index of room
         indexOfRoom = new HashMap<>();
-        for(short i = 0;i < practicalRoomCodeArray.length; i++) {
-            indexOfRoom.put(practicalRoomCodeArray[i], i);
+        for(short i = 0; i < roomCodes.length; i++) {
+            indexOfRoom.put(roomCodes[i], i);
         }
 
-        //Updating index of subjects
-        this.indexOfSubject = new HashMap<>();
+        //Evaluating index of subjects
+        HashMap<String, Short> indexOfSubject = new HashMap<>();
         for (short i = 0; i < subjectCodeArray.length; i++)
             indexOfSubject.put(subjectCodeArray[i], i);
 
@@ -105,12 +105,16 @@ public class PreComputation {
         return teachersForSubjects;
     }
 
-    public HashMap<String, Short> getIndexOfSubject() {
-        return indexOfSubject;
+    public String[] getSubjectCodes() {
+        return this.subjectCodeArray;
     }
 
-    public String[] getPracticalRoomCodes() {
-        return practicalRoomCodeArray;
+    public String[] getTeacherNames() {
+        return this.teacherNameArray;
+    }
+
+    public String[] getRoomCodes() {
+        return roomCodes;
     }
 
     public HashMap<String, Short> getIndexOfRoom() {
