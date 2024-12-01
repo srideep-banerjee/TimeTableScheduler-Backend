@@ -71,4 +71,9 @@ public class Util {
         Collections.reverse(res);
         return res;
     }
+
+    public static byte getSectionCount(String subjectCode) {
+        Subject subject = SubjectDao.getInstance().get(subjectCode);
+        return ScheduleStructure.getInstance().getSectionCount(subject.getSem());
+    }
 }

@@ -1,6 +1,7 @@
 package org.example.algorithms.io;
 
 import org.example.algorithms.DayPeriod;
+import org.example.algorithms.Util;
 import org.example.dao.SubjectDao;
 import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
@@ -43,17 +44,12 @@ public class ChromosomeReader implements Closeable {
         this.rooms = rooms;
     }
 
-    private byte getSectionCount(String subjectCode) {
-        Subject subject = SubjectDao.getInstance().get(subjectCode);
-        return ScheduleStructure.getInstance().getSectionCount(subject.getSem());
-    }
-
     /**
      * Returns whether there is more data in the chromosome that can be read
      * @return {@code true} if there is more data to be read otherwise {@code false}
      */
     public boolean hasNext() {
-        while (subjectIndex < subjects.length && getSectionCount(subjects[subjectIndex]) == 0)
+        while (subjectIndex < subjects.length && Util.getSectionCount(subjects[subjectIndex]) == 0)
             subjectIndex++;
         return subjectIndex < subjects.length;
     }
@@ -97,7 +93,7 @@ public class ChromosomeReader implements Closeable {
             dayPeriod = -1;
         }
 
-        if (currentSec >= getSectionCount(subjectCode)) {
+        if (currentSec >= Util.getSectionCount(subjectCode)) {
             currentSec = 0;
             subjectIndex++;
         }
