@@ -13,7 +13,6 @@ public class PreComputation {
     private String[] subjectCodeArray;
     private String[] teacherNameArray;
     private ArrayList<Integer>[] teachersForSubjects;
-    private HashMap<String, Short> indexOfTeacher;
     private String[] roomCodes;
     private  HashMap<String, Short> indexOfRoom;
     SubjectDao subjectDao = SubjectDao.getInstance();
@@ -42,11 +41,6 @@ public class PreComputation {
         HashMap<String, Short> indexOfSubject = new HashMap<>();
         for (short i = 0; i < subjectCodeArray.length; i++)
             indexOfSubject.put(subjectCodeArray[i], i);
-
-        //Updating index of teachers
-        this.indexOfTeacher = new HashMap<>();
-        for (short i = 0; i < teacherNameArray.length; i++)
-            indexOfTeacher.put(teacherNameArray[i], i);
 
         //Updating teachers for subjects
         this.teachersForSubjects = new ArrayList[subjectCodeArray.length];
@@ -119,9 +113,5 @@ public class PreComputation {
 
     public HashMap<String, Short> getIndexOfRoom() {
         return indexOfRoom;
-    }
-
-    public HashMap<String, Short> getIndexOfTeacher() {
-        return indexOfTeacher;
     }
 }

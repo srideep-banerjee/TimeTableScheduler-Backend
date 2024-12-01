@@ -9,6 +9,7 @@ import org.example.interfaces.OnResultListener;
 import org.example.pojo.ScheduleSolution;
 import org.example.pojo.ScheduleStructure;
 import org.example.pojo.Subject;
+import org.example.pojo.Teacher;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -25,7 +26,6 @@ public class Generator {
     private String[] teacherNameArray = null;
     private String[] roomCodesArray = null;
     private HashMap<String, Short> indexOfRoom = null;
-    private HashMap<String, Short> indexOfTeacher = null;
     private ArrayList<Integer>[] teachersForSubjects = null;
     private PopulationStorage populationStorage;
     private ArrayList<GeneticThread> geneticThreads = new ArrayList<>();
@@ -111,8 +111,6 @@ public class Generator {
 
         this.teachersForSubjects = preComputation.getTeachersForSubjects();
 
-        this.indexOfTeacher = preComputation.getIndexOfTeacher();
-
         this.roomCodesArray = preComputation.getRoomCodes();
 
         this.indexOfRoom = preComputation.getIndexOfRoom();
@@ -165,7 +163,6 @@ public class Generator {
     //Ex : {13,33,0,4}
     private void generateRandomChromosome(int index) throws IOException {
         PrintStream ps = populationStorage.getChromosomeWriter(index);
-        Random random = new Random();
 
         ChromosomeAnalyzer ca = new ChromosomeAnalyzer(subjectCodeArray, teacherNameArray, teachersForSubjects);
 
@@ -282,7 +279,8 @@ public class Generator {
 
         try (ChromosomeReader chromosomeReader = new ChromosomeReader(sc, teacherNameArray, subjectCodeArray, roomCodesArray)) {
 
-            chromosomeReader.readAll((semester, section, day, period, subject, teacher, roomCode) -> {
+            chromosomeReader.readAll((semester, section, day, period, subjectIndex, teacherIndex, roomCode, lectureIndex) -> {
+                String subject = subjectCodeArray[subjectIndex];
                 Subject sub = subjectDao.get(subject);
 
                 //evaluating h6
@@ -293,10 +291,10 @@ public class Generator {
                 //none other constraints required if subject is free
                 if (sub.isFree()) return;
 
-                short teacherIndex = indexOfTeacher.get(teacher);
+                Teacher teacher = teacherDao.get(teacherNameArray[teacherIndex]);
 
                 //evaluating h2
-                if (!teacherDao.get(teacher).getFreeTime().contains(Arrays.asList(day, period)) && !teacherDao.get(teacher).getFreeTime().isEmpty())
+                if (!teacher.getFreeTime().contains(Arrays.asList(day, period)) && !teacher.getFreeTime().isEmpty())
                     violationCount[0]++;
 
                 //evaluating h4
@@ -310,7 +308,7 @@ public class Generator {
                 else {
                     key = String.format("%d,%s", section, subject);
                     /*if (!h5.containsKey(key)) */
-                    h5.put(key, teacherIndex);
+                    h5.put(key, (short) teacherIndex);
                     //else if (h5.get(key) != teacherIndex) count++;
                 }
 
@@ -324,7 +322,7 @@ public class Generator {
                     key = String.format("%d,%s", section, subject);
                     if (!h89.containsKey(key))
                         h89.put(key, new ArrayList<>());
-                    h89.get(key).add(new short[]{day, period, teacherIndex});
+                    h89.get(key).add(new short[]{day, period, (short) teacherIndex});
                 }
 
                 //processing h10
