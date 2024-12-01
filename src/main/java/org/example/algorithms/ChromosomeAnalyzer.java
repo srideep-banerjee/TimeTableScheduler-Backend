@@ -37,52 +37,6 @@ public class ChromosomeAnalyzer {
         this.random = new Random();
     }
 
-    //Incomplete
-    public void analyze(Scanner sc) {
-        SubjectDao subjectDao = SubjectDao.getInstance();
-        ScheduleStructure scheduleData = ScheduleStructure.getInstance();
-
-        sectionAllocationTable = new HashMap<>();
-        sectionConflictTable = new HashMap<>();
-        teacherTimeAllocationTable = new HashMap<>();
-        teacherTimeConflictTable = new HashMap<>();
-        practicalLabAllocationTable = new HashMap<>();
-
-        OuterLoop:
-        for (String subject : subjectCodeArray) {
-            Subject sub = subjectDao.get(subject);
-            byte semester = (byte) sub.getSem();
-            byte secCount = scheduleData.getSectionCount(semester);
-            int lectureCount = sub.getLectureCount();
-
-            for (byte section = 1; section <= secCount; section++) {
-                short teacherIndex = -1;
-                short val = -1;
-                short value;
-                if (sub.isPractical()) {
-                    val = sc.nextShort();
-                } else {
-                    teacherIndex = sc.nextShort();
-                }
-
-                for (int j = 0; j < lectureCount; j++) {
-                    if (stopped) break OuterLoop;
-                    if (sub.isPractical()) {
-                        teacherIndex = sc.nextShort();
-                        value = (short) (val + j);
-                    } else {
-                        value = sc.nextShort();
-                    }
-
-                    DayPeriod dayPeriod = new DayPeriod(value);
-                    SemesterSection semesterSection = new SemesterSection(semester, section);
-
-                    //assign(semesterSection, dayPeriod, teacherIndex, subject);
-                }
-            }
-        }
-    }
-
     public boolean isSectionAvailable(SemesterSection semesterSection, DayPeriod dayPeriod) {
         byte[] breakLocations = ScheduleStructure.getInstance().getBreakLocations(semesterSection.semester);
         for (byte brk : breakLocations) if (brk == dayPeriod.period + 1) return false;
@@ -240,12 +194,12 @@ public class ChromosomeAnalyzer {
                     //if allocation possible, add the starting dayPeriod to choices
                     if (valid) choices.add(new PracticalTimeRoom(roomCode, new DayPeriod(day, startPeriod)));
                 }
-                if (choices.size() > 0) break;
+                if (!choices.isEmpty()) break;
             }
-            if (choices.size() > 0) break;
+            if (!choices.isEmpty()) break;
         }
 
-        if(choices.size() == 0) return new PracticalTimeRoom(availableRoomCodes.get(0), new DayPeriod((byte) random.nextInt(5), allocationPeriods.get(0)));
+        if(choices.isEmpty()) return new PracticalTimeRoom(availableRoomCodes.get(0), new DayPeriod((byte) random.nextInt(5), allocationPeriods.get(0)));
         return choices.get(random.nextInt(choices.size()));
     }
 
