@@ -157,7 +157,6 @@ public class ChromosomeReader implements Closeable {
 
             byte sec = subjectIndex == this.subjectIndex ? currentSec : 0;
             for (; sec < secCount; sec++) {
-                String teacher = null;
                 int teacherIndex = -1;
                 short practicalStartDayPeriod = -1;
                 short dayPeriod;
