@@ -66,7 +66,7 @@ public class ChromosomeReader implements Closeable {
     public void read(ReaderCallback readerCallback) throws IOException {
         read(
                 (sem, sec, day, period, subjectIndex, teacherIndex, roomCode, lectureIndex) ->
-                        readerCallback.process(sem, sec, day, period, subjects[subjectIndex], teachers[teacherIndex], roomCode)
+                        readerCallback.process(sem, sec, day, period, subjects[subjectIndex], teacherIndex != -1 ? teachers[teacherIndex] : null, roomCode)
         );
     }
 
@@ -131,7 +131,7 @@ public class ChromosomeReader implements Closeable {
     public void readAll(ReaderCallback readerCallback) throws IOException {
         readAll(
                 (sem, sec, day, period, subjectIndex, teacherIndex, roomCode, lectureIndex) ->
-                        readerCallback.process(sem, sec, day, period, subjects[subjectIndex], teachers[teacherIndex], roomCode)
+                        readerCallback.process(sem, sec, day, period, subjects[subjectIndex], teacherIndex != -1 ? teachers[teacherIndex] : null, roomCode)
         );
     }
 
@@ -161,13 +161,13 @@ public class ChromosomeReader implements Closeable {
                 short practicalStartDayPeriod = -1;
                 short dayPeriod;
                 String roomCode;
-                if (!practical) {
-                    if (!free) teacherIndex = sc.nextShort();
-                    roomCode = subjectDao.get(subject).getRoomCodes().get(0);
-                } else {
+                if (practical) {
                     practicalStartDayPeriod = sc.nextShort();
                     if (!free) roomCode = rooms[sc.nextShort()];
                     else roomCode = subjectDao.get(subject).getRoomCodes().get(0);
+                } else {
+                    if (!free) teacherIndex = sc.nextShort();
+                    roomCode = subjectDao.get(subject).getRoomCodes().get(0);
                 }
                 int lectureCount = subjectDao.get(subject).getLectureCount();
 
