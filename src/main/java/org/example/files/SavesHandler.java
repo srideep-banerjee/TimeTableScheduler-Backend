@@ -409,10 +409,22 @@ public class SavesHandler implements AutoCloseable {
                         .add(teacher.getFreeTime().isEmpty())
                         .executeInsert();
                 for (String subjectCode: teacher.getSubjects()) {
-                    new InsertStatement(connection, "current.teacher_known_subjects")
-                            .add(teacherName)
-                            .add(subjectCode)
-                            .executeInsert();
+                    try {
+                        new InsertStatement(connection, "current.teacher_known_subjects")
+                                .add(teacherName)
+                                .add(subjectCode)
+                                .executeInsert();
+                    } catch (InsertStatement.ForeignKeyException e) {
+                        if (e.getColumnName().equals("subject_code")) {
+                            String msg = "'" +
+                                    subjectCode +
+                                    "' was added as known subject for '" +
+                                    teacherName +
+                                    "'" +
+                                    " but doesn't exist in subjects";
+                            throw new TTSFileException(msg);
+                        }
+                    }
                 }
                 for (List<Integer> freeDayPeriod: teacher.getFreeTime()) {
                     byte day = freeDayPeriod.get(0).byteValue();
