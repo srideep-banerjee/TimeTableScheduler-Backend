@@ -5,4 +5,5 @@ public class DefaultConfig {
     public static boolean GENERATOR_LOG_SINGLE_LINE = true;
     public static boolean DELETE_GENERATOR_FILES_ON_EXIT = true;
     public static int STARTING_PORT = -1;
+    public static int CURRENT_FILE_VERSION = 1;
 }

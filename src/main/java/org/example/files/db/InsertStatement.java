@@ -5,8 +5,6 @@ import org.example.files.TTSFileException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 
 public class InsertStatement {
     private final StringBuilder queryBuilder;
@@ -15,14 +13,17 @@ public class InsertStatement {
     private final String tableName;
 
     public InsertStatement(Connection connection, String tableName) {
-        this(connection, tableName, false);
+        this(connection, tableName, OnConflict.NONE);
     }
 
-    public InsertStatement(Connection connection, String tableName, boolean orIgnore) {
+    public InsertStatement(Connection connection, String tableName, OnConflict onConflict) {
         this.connection = connection;
         this.queryBuilder = new StringBuilder("INSERT ");
-        if (orIgnore) {
-            queryBuilder.append("OR IGNORE ");
+        if (onConflict != OnConflict.NONE) {
+            queryBuilder
+                    .append("OR ")
+                    .append(onConflict.name())
+                    .append(" ");
         }
         queryBuilder.append("INTO ")
                 .append(tableName)
@@ -142,6 +143,12 @@ public class InsertStatement {
         public String getColumnName() {
             return this.columnName;
         }
+    }
+
+    public enum OnConflict{
+        IGNORE,
+        REPLACE,
+        NONE
     }
 
 }
