@@ -1,10 +1,10 @@
 package org.example.files;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.algorithms.DayPeriod;
 import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
+import org.example.files.db.ConfigHandler;
 import org.example.files.db.CreateTableQueryBuilder;
 import org.example.files.db.InsertStatement;
 import org.example.pojo.ScheduleSolution;
@@ -13,13 +13,13 @@ import org.example.pojo.Subject;
 import org.example.pojo.Teacher;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
+
+import static org.example.DefaultConfig.CURRENT_FILE_VERSION;
 import static org.example.files.db.CreateTableQueryBuilder.*;
 
 public class SavesHandler implements AutoCloseable {
@@ -80,11 +80,11 @@ public class SavesHandler implements AutoCloseable {
     }
 
     public String getCurrentSaveName() throws SQLException, IOException {
-        String currentSave = null;
+        String currentSave = getConfigHandler().getGlobal("current-save");
 
         try (
                 Statement statement = connection.createStatement();
-                ResultSet result = statement.executeQuery("SELECT * FROM config WHERE name='current-save'");
+                ResultSet result = statement.executeQuery("SELECT * FROM config WHERE name='current-save'")
         ) {
             if (result.next()) {
                 currentSave = result.getString("data");
@@ -221,7 +221,8 @@ public class SavesHandler implements AutoCloseable {
                                     .addReference("subject_code")
                     ).build();
             statement.execute(query);
-            query = new CreateTableQueryBuilder("current.schedule_structure")
+            query = new CreateTableQueryBuilder("current.config")
+                    .addKey("name", "string", true)
                     .addKey("data", "string")
                     .build();
             statement.execute(query);
@@ -247,10 +248,10 @@ public class SavesHandler implements AutoCloseable {
             setCurrentDatabase(name, saveFile.getPath());
             connection.setAutoCommit(false);
             createTablesIfNotExist();
+            ConfigHandler configHandler = getConfigHandler();
+            configHandler.putLocal("version", Integer.toString(CURRENT_FILE_VERSION));
             String json = new ObjectMapper().writeValueAsString(ScheduleStructure.getRevertedClone());
-            new InsertStatement(connection, "current.schedule_structure")
-                    .add(json)
-                    .executeInsert();
+            configHandler.putLocal("schedule-structure", json);
             updateCurrentSave(name);
             connection.commit();
         } catch (Exception e) {
@@ -284,14 +285,14 @@ public class SavesHandler implements AutoCloseable {
         try (Statement statement = connection.createStatement()) {
             setCurrentDatabase(name, saveFile.getPath());
             clearMemory();
-            try (ResultSet results = statement.executeQuery("SELECT data FROM current.schedule_structure")) {
-                while (results.next()) {
-                    String structureJson = results.getString(1);
-                    ObjectMapper om = new ObjectMapper();
-                    om.readerForUpdating(ScheduleStructure.getInstance())
-                            .readValue(structureJson, ScheduleStructure.class);
-                }
-            }
+
+            new VersionRectifier(connection).rectifyCurrentFileVersion();
+
+            String structureJson = getConfigHandler().getLocal("schedule-structure");
+            ObjectMapper om = new ObjectMapper();
+            om.readerForUpdating(ScheduleStructure.getInstance())
+                    .readValue(structureJson, ScheduleStructure.class);
+
             try (ResultSet results = statement.executeQuery("SELECT * FROM current.subjects")) {
                 while (results.next()) {
                     String code = results.getString("subject_code");
@@ -438,7 +439,7 @@ public class SavesHandler implements AutoCloseable {
 
             ScheduleSolution.SolutionIteratorCallback callback = (sem, sec, day, period, subject, teacher, room) -> {
                 try {
-                    new InsertStatement(connection, "current.schedule_room_entries", true)
+                    new InsertStatement(connection, "current.schedule_room_entries", InsertStatement.OnConflict.IGNORE)
                             .add(sem)
                             .add(sec)
                             .add(subject)
@@ -462,10 +463,12 @@ public class SavesHandler implements AutoCloseable {
                 throw new IOException(e);
             }
 
+            ConfigHandler configHandler = getConfigHandler();
+
             String json = new ObjectMapper().writeValueAsString(ScheduleStructure.getInstance());
-            new InsertStatement(connection, "current.schedule_structure")
-                    .add(json)
-                    .executeInsert();
+            configHandler.putLocal("schedule-structure", json);
+
+            configHandler.putLocal("version", Integer.toString(CURRENT_FILE_VERSION));
 
             updateCurrentSave(name);
             connection.commit();
@@ -525,21 +528,21 @@ public class SavesHandler implements AutoCloseable {
             statement.execute("DELETE FROM current.teacher_free");
             statement.execute("DELETE FROM current.schedule_room_entries");
             statement.execute("DELETE FROM current.schedule_period_entries");
-            statement.execute("DELETE FROM current.schedule_structure");
+            statement.execute("DELETE FROM current.config");
         }
     }
 
     private void updateCurrentSave(String newSave) throws SQLException {
         newSave = newSave.toUpperCase();
-        try (PreparedStatement preparedStatement = connection
-                .prepareStatement("INSERT OR REPLACE INTO config VALUES ('current-save', ?)")) {
-            preparedStatement.setString(1, newSave);
-            preparedStatement.executeUpdate();
-        }
+        getConfigHandler().putGlobal("current-save", newSave);
     }
 
     @Override
     public void close() throws SQLException {
         connection.close();
+    }
+
+    public ConfigHandler getConfigHandler() {
+        return new ConfigHandler(connection);
     }
 }
