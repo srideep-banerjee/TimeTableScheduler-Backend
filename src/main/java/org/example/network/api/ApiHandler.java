@@ -538,12 +538,10 @@ public class ApiHandler implements HttpHandler {
     public void sendTextResponse(HttpExchange exchange, int code, String response) {
         try {
             Headers headers = exchange.getResponseHeaders();
-            int port = server.getAddress().getPort();
-            int clientPort = 3000;
-            headers.set("Content-Type", "text/plain");
-            if (Arrays.asList(3000,port).contains(clientPort)) {
-                headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
-            }
+            String allowedOrigin = "http://localhost:" + server.getAddress().getPort();
+            if (!DefaultConfig.REQUIRE_TOKEN)
+                allowedOrigin = "*";
+            headers.set("Access-Control-Allow-Origin", allowedOrigin);
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -556,12 +554,11 @@ public class ApiHandler implements HttpHandler {
     public void sendJsonResponse(HttpExchange exchange, int code, String response) {
         try {
             Headers headers = exchange.getResponseHeaders();
-            int port = server.getAddress().getPort();
-            int clientPort = 3000;
             headers.set("Content-Type", "application/json");
-            if (Arrays.asList(3000,port).contains(clientPort)) {
-                headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
-            }
+            String allowedOrigin = "http://localhost:" + server.getAddress().getPort();
+            if (!DefaultConfig.REQUIRE_TOKEN)
+                allowedOrigin = "*";
+            headers.set("Access-Control-Allow-Origin", allowedOrigin);
             exchange.sendResponseHeaders(code, response.length());
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -574,14 +571,12 @@ public class ApiHandler implements HttpHandler {
     public void sendPreflightResponse(HttpExchange exchange) {
         try {
             Headers headers = exchange.getResponseHeaders();
-            int port = server.getAddress().getPort();
-            int clientPort = 3000;
-            headers.set("Content-Type", "text/plain");
-            if (Arrays.asList(3000,port).contains(clientPort)) {
-                headers.set("Access-Control-Allow-Origin", "http://localhost:" + clientPort);
-                headers.set("Access-Control-Allow-Methods","GET,PUT,POST,DELETE");
-                headers.set("Access-Control-Allow-Headers","Content-Type");
-            }
+            String allowedOrigin = "http://localhost:" + server.getAddress().getPort();
+            if (!DefaultConfig.REQUIRE_TOKEN)
+                allowedOrigin = "*";
+            headers.set("Access-Control-Allow-Origin", allowedOrigin);
+            headers.set("Access-Control-Allow-Methods","GET,PUT,POST,DELETE");
+            headers.set("Access-Control-Allow-Headers","Content-Type, api-token");
             exchange.sendResponseHeaders(200, 0);
             OutputStream os = exchange.getResponseBody();
             os.close();

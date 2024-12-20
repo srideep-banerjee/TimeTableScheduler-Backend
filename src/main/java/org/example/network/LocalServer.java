@@ -3,6 +3,7 @@ package org.example.network;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.example.DefaultConfig;
 import org.example.network.api.ApiHandler;
 
 import java.io.*;
@@ -12,7 +13,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class LocalServer {
-    private final String homeHtml = "index.html";
     private HttpServer server;
     private int port = 9000;
 
@@ -20,7 +20,8 @@ public class LocalServer {
         Random random = new Random();
         while (true) {
             try {
-                this.server = HttpServer.create(new InetSocketAddress(port), 0);
+                String address = DefaultConfig.REQUIRE_TOKEN ? "localhost" : "0.0.0.0";
+                this.server = HttpServer.create(new InetSocketAddress(address, port), 0);
                 break;
             } catch (IOException e) {
                 this.port = random.nextInt(5000, 65535);
