@@ -531,7 +531,7 @@ public class ApiHandler implements HttpHandler {
                             sendTextResponse(exchange, 200, value);
                         }
                     }
-                    case "POST" -> {
+                    case "PUT" -> {
                         String value = new String(exchange.getRequestBody().readAllBytes());
                         configHandler.putGlobal(keyName, value);
                         sendTextResponse(exchange, 200, "Request accepted");
@@ -549,7 +549,7 @@ public class ApiHandler implements HttpHandler {
             sendTextResponse(exchange, 405, "Unsupported request");
             return;
         }
-        if (!requestMethod.equals("GET") && (!path.startsWith("/io/saves") || !path.startsWith("/io/config/global/")))
+        if (!requestMethod.equals("GET") && !path.startsWith("/io/saves") && !path.startsWith("/io/config/global/"))
             SavesHandler.getInstance().markUnsaved();
 
         //}catch(Exception e){
