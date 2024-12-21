@@ -14,6 +14,7 @@ import org.example.dao.SubjectDao;
 import org.example.dao.TeacherDao;
 import org.example.files.SavesHandler;
 import org.example.files.TTSFileException;
+import org.example.files.db.ConfigHandler;
 import org.example.interfaces.OnResultListener;
 import org.example.network.TokenManager;
 import org.example.pojo.ScheduleSolution;
@@ -517,12 +518,38 @@ public class ApiHandler implements HttpHandler {
 //            } catch (Exception e) {
 //                e.printStackTrace();
 //            }
+        } else if (path.startsWith("/io/config/global/")) {
+            String keyName = path.substring(18);
+            ConfigHandler configHandler = SavesHandler.getInstance().getConfigHandler();
+            try {
+                switch (requestMethod) {
+                    case "GET" -> {
+                        String value = configHandler.getGlobal(keyName);
+                        if (value == null) {
+                            sendTextResponse(exchange, 404, "null");
+                        } else {
+                            sendTextResponse(exchange, 200, value);
+                        }
+                    }
+                    case "POST" -> {
+                        String value = new String(exchange.getRequestBody().readAllBytes());
+                        configHandler.putGlobal(keyName, value);
+                        sendTextResponse(exchange, 200, "Request accepted");
+                    }
+                    case "DELETE" -> {
+                        configHandler.deleteGlobal(keyName);
+                        sendTextResponse(exchange, 200, "Request accepted");
+                    }
+                }
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
         } else {
             // Handle other HTTP methods or unsupported paths
             sendTextResponse(exchange, 405, "Unsupported request");
             return;
         }
-        if (!requestMethod.equals("GET") && !path.startsWith("/io/saves"))
+        if (!requestMethod.equals("GET") && (!path.startsWith("/io/saves") || !path.startsWith("/io/config/global/")))
             SavesHandler.getInstance().markUnsaved();
 
         //}catch(Exception e){
