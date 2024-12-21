@@ -56,3 +56,9 @@ get saves/currentName -done response "SAVE1"
 get saves/isSaved -done response "true" or "false"
 
 post saves/delete -done response format: Request accepted
+
+get config/global/{key name} -done response format: "value of key"
+
+put config/global/{key name} -done response format: Request accepted
+
+delete config/global/{key name} -done response format: Request accepted
