@@ -19,11 +19,6 @@ public class ScheduleGeneratorApiProcessor extends ApiProcessor {
 
     @Override
     public boolean matches(ApiRequest request) {
-        System.out.println("Schedule Generator Matching = " + (request.path().equals("/io/schedule") &&
-                request.queries().size() == 1 &&
-                request.queries()
-                        .getOrDefault("generatenew", "false")
-                        .equals("true")));
         return request.path().equals("/io/schedule") &&
                 request.queries().size() == 1 &&
                 request.queries()
