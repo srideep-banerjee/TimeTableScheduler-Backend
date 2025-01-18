@@ -14,7 +14,8 @@ public class StudentEntity implements Entity {
         String query = new CreateTableQueryBuilder("current.students")
                 .addKey("roll_no", "string", true)
                 .addKey("name", "string")
-                .addKey("sem_sec", "string")
+                .addKey("sem", "integer")
+                .addKey("sec", "integer")
                 .addKey("email", "string")
                 .addKey("attendance", "integer")
                 .build();
@@ -39,10 +40,11 @@ public class StudentEntity implements Entity {
             while (results.next()) {
                 String roll = results.getString("roll_no");
                 String name = results.getString("name");
-                String semSec = results.getString("sem_sec");
+                int sem = results.getInt("sem");
+                int sec = results.getInt("sec");
                 String email = results.getString("email");
                 int attendance = results.getInt("attendance");
-                Student student = new Student(name, roll, semSec, email, attendance);
+                Student student = new Student(name, roll, sem, sec, email, attendance);
                 studentDao.put(roll, student);
             }
         }
@@ -54,7 +56,8 @@ public class StudentEntity implements Entity {
             new InsertStatement(connection, "current.students")
                     .add(student.getRollNo())
                     .add(student.getName())
-                    .add(student.getSemSec())
+                    .add(student.getSem())
+                    .add(student.getSec())
                     .add(student.getEmail())
                     .add(student.getAttendance())
                     .executeInsert();

@@ -55,6 +55,13 @@ public class VersionRectifier {
             }
         }
 
+        if (version < 3) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("DROP TABLE current.students");
+                new StudentEntity().createIfNotExist(statement);
+            }
+        }
+
         configHandler.putLocal("version", Integer.toString(CURRENT_FILE_VERSION));
     }
 }
