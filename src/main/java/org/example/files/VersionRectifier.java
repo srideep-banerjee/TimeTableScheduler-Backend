@@ -2,6 +2,7 @@ package org.example.files;
 
 import org.example.files.db.ConfigHandler;
 import org.example.files.db.CreateTableQueryBuilder;
+import org.example.files.db.entities.implementation.StudentEntity;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -34,6 +35,8 @@ public class VersionRectifier {
         int version = 0;
         if (versionString != null) version = Integer.parseInt(versionString);
 
+        if (version == CURRENT_FILE_VERSION) return;
+
         if (version < 1) {
             try (
                     Statement statement = connection.createStatement();
@@ -43,6 +46,12 @@ public class VersionRectifier {
                 String json = results.getString(1);
                 configHandler.putLocal("schedule-structure", json);
                 statement.execute("DROP TABLE current.schedule_structure");
+            }
+        }
+
+        if (version < 2) {
+            try (Statement statement = connection.createStatement()) {
+                new StudentEntity().createIfNotExist(statement);
             }
         }
 
