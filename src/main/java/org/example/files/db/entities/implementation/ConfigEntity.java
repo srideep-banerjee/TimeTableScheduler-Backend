@@ -1,6 +1,7 @@
-package org.example.files.db.entities;
+package org.example.files.db.entities.implementation;
 
 import org.example.files.db.CreateTableQueryBuilder;
+import org.example.files.db.entities.Entity;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,10 +1,11 @@
-package org.example.files.db.entities;
+package org.example.files.db.entities.implementation;
 
 import org.example.algorithms.DayPeriod;
 import org.example.dao.TeacherDao;
 import org.example.files.TTSFileException;
 import org.example.files.db.CreateTableQueryBuilder;
 import org.example.files.db.InsertStatement;
+import org.example.files.db.entities.Entity;
 import org.example.pojo.Teacher;
 
 import java.sql.*;

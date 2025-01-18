@@ -1,5 +1,7 @@
 package org.example.files.db.entities;
 
+import org.example.files.db.entities.implementation.*;
+
 import java.util.Arrays;
 import java.util.List;
 

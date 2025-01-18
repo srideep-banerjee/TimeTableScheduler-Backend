@@ -1,8 +1,9 @@
-package org.example.files.db.entities;
+package org.example.files.db.entities.implementation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.files.db.ConfigHandler;
+import org.example.files.db.entities.Entity;
 import org.example.pojo.ScheduleStructure;
 
 import java.io.IOException;
