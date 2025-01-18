@@ -70,7 +70,18 @@ public class ApiHandler implements HttpHandler {
         }
         apiResponse.send(exchange, allowedOrigin);
 
-        if (!requestMethod.equals("GET") && !path.startsWith("/io/saves") && !path.startsWith("/io/config/global/"))
+        if (
+                !isResponseUnsuccessful(apiResponse) &&
+                        !requestMethod.equals("GET") &&
+                        !path.startsWith("/io/saves") &&
+                        !path.startsWith("/io/config/global/")
+        ) {
             SavesHandler.getInstance().markUnsaved();
+        }
+    }
+
+    private boolean isResponseUnsuccessful(ApiResponse response) {
+        if (!(response instanceof TextApiResponse textApiResponse)) return false;
+        return textApiResponse.code / 100 != 2;
     }
 }
