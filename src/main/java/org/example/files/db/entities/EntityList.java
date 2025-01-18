@@ -17,7 +17,8 @@ public class EntityList {
                 new ScheduleStructureEntity(),
                 new SubjectEntity(),
                 new TeacherEntity(),
-                new ScheduleSolutionEntity()
+                new ScheduleSolutionEntity(),
+                new StudentEntity()
         );
     }
 }
