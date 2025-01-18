@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public class TextApiResponse implements ApiResponse {
-    private final int code;
+    public final int code;
     private final String response;
 
     public TextApiResponse(int code, String response) {
