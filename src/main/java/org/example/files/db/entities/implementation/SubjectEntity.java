@@ -1,8 +1,9 @@
-package org.example.files.db.entities;
+package org.example.files.db.entities.implementation;
 
 import org.example.dao.SubjectDao;
 import org.example.files.db.CreateTableQueryBuilder;
 import org.example.files.db.InsertStatement;
+import org.example.files.db.entities.Entity;
 import org.example.pojo.Subject;
 
 import java.sql.*;
