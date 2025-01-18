@@ -2,6 +2,7 @@ package org.example.pojo;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Objects;
@@ -15,7 +16,7 @@ public class Student {
     private final String email;
     private final int attendance;
 
-    public Student(String name, String rollNo, String semSec, String email, int attendance) {
+    public Student(@JsonProperty("name") String name, @JsonProperty("rollNo") String rollNo, @JsonProperty("semSec") String semSec, @JsonProperty("email") String email, @JsonProperty("attendance") int attendance) {
         this.name = name;
         this.rollNo = rollNo;
         this.semSec = semSec;
