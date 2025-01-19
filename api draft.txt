@@ -30,17 +30,17 @@ delete subjects/{subjectCode} -done response: "Request accepted"
 
 
 
-get students -done response format:{"roll no. 1":{"name": "Abcd Efgh","rollNo":"roll no. 1","semSec":"3 - A","email":"abcd.efgh@example.com","attendance":90}}
+get students -done response format:{"roll no. 1":{"name":"Abcd Efgh", "rollNo":"roll no. 1", "sem":3, "sec":0,"email":"abcd.efgh@example.com","attendance":90, "phoneNumber":"9876543210", "address": "student address"}}
 
-put students -done request format:{"roll no. 1":{"name": "Abcd Efgh","rollNo":"roll no. 1","semSec":"3 - A","email":"abcd.efgh@example.com","attendance":90}}
+put students -done request format:{"roll no. 1":{"name":"Abcd Efgh", "rollNo":"roll no. 1", "sem":3, "sec":0,"email":"abcd.efgh@example.com","attendance":90, "phoneNumber":"9876543210", "address": "student address"}}
 
 delete students -done response: "Request accepted"
 
 get students/rolls -done response format:["roll no. 1","roll no. 2","roll no. 3"]
 
-get students/{rollNo} -done response format:{"name": "Abcd Efgh","rollNo":"roll no. 1","semSec":"3 - A","email":"abcd.efgh@example.com","attendance":90}
+get students/{rollNo} -done response format:{"name":"Abcd Efgh", "rollNo":"roll no. 1", "sem":3, "sec":0,"email":"abcd.efgh@example.com","attendance":90, "phoneNumber":"9876543210", "address": "student address"}
 
-put students/{rollNo} -done request format:{"name": "Abcd Efgh","rollNo":"roll no. 1","semSec":"3 - A","email":"abcd.efgh@example.com","attendance":90}
+put students/{rollNo} -done request format:{"name":"Abcd Efgh", "rollNo":"roll no. 1", "sem":3, "sec":0,"email":"abcd.efgh@example.com","attendance":90, "phoneNumber":"9876543210", "address": "student address"}
 
 delete students/{rollNo} -done response: "Request accepted"
 
