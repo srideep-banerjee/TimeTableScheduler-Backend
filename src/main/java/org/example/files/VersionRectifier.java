@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class VersionRectifier {
-    public static int CURRENT_FILE_VERSION = 3;
+    public static int CURRENT_FILE_VERSION = 4;
 
     private final Connection connection;
 
@@ -59,6 +59,15 @@ public class VersionRectifier {
             try (Statement statement = connection.createStatement()) {
                 statement.execute("DROP TABLE current.students");
                 new StudentEntity().createIfNotExist(statement);
+            }
+        }
+
+        if (version < 4) {
+            try (Statement statement = connection.createStatement()) {
+                query = "ALTER TABLE current.students ADD COLUMN phone_no STRING";
+                statement.execute(query);
+                query = "ALTER TABLE current.students ADD COLUMN address STRING";
+                statement.execute(query);
             }
         }
 

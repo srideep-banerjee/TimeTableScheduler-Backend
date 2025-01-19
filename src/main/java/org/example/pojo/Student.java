@@ -1,12 +1,13 @@
 package org.example.pojo;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Objects;
 
-@JsonPropertyOrder({"name", "rollNo", "sem", "sec", "semSec", "email", "attendance"})
+@JsonPropertyOrder({"name", "rollNo", "sem", "sec", "semSec", "email", "attendance", "phoneNumber", "address"})
 public class Student {
     private final String name;
     private final String rollNo;
@@ -14,14 +15,20 @@ public class Student {
     private final int sec;
     private final String email;
     private final int attendance;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String phoneNumber;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String address;
 
-    public Student(@JsonProperty("name") String name, @JsonProperty("rollNo") String rollNo, @JsonProperty("sem") int sem, @JsonProperty("sec") int sec, @JsonProperty("email") String email, @JsonProperty("attendance") int attendance) {
+    public Student(@JsonProperty("name") String name, @JsonProperty("rollNo") String rollNo, @JsonProperty("sem") int sem, @JsonProperty("sec") int sec, @JsonProperty("email") String email, @JsonProperty("attendance") int attendance, @JsonProperty("phoneNumber") String phoneNumber, @JsonProperty("address") String address) {
         this.name = name;
         this.rollNo = rollNo;
         this.sem = sem;
         this.sec = sec;
         this.email = email;
         this.attendance = attendance;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
     }
 
     @Override
@@ -38,7 +45,7 @@ public class Student {
 
     @JsonGetter("name")
     public String getName() {
-        return this.name;
+        return name;
     }
 
     @JsonGetter("rollNo")
@@ -46,12 +53,14 @@ public class Student {
         return rollNo;
     }
 
+    @JsonGetter("sem")
     public int getSem() {
-        return this.sem;
+        return sem;
     }
 
+    @JsonGetter("sec")
     public int getSec() {
-        return this.sec;
+        return sec;
     }
 
     @JsonGetter("email")
@@ -62,5 +71,15 @@ public class Student {
     @JsonGetter("attendance")
     public int getAttendance() {
         return attendance;
+    }
+
+    @JsonGetter("phoneNumber")
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    @JsonGetter("address")
+    public String getAddress() {
+        return address;
     }
 }
