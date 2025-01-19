@@ -19,7 +19,7 @@ public class Student {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String address;
 
-    public Student(@JsonProperty("name") String name, @JsonProperty("rollNo") String rollNo, @JsonProperty("sem") int sem, @JsonProperty("sec") int sec, @JsonProperty("email") String email, @JsonProperty("attendance") int attendance, @JsonProperty("phoneNumber") String phoneNumber, @JsonProperty("address") String address) {
+    public Student(@JsonProperty("name") String name, @JsonProperty("rollNo") String rollNo, @JsonAlias("semester") @JsonProperty("sem") int sem, @JsonAlias("section") @JsonProperty("sec") int sec, @JsonProperty("email") String email, @JsonProperty("attendance") int attendance, @JsonAlias("phoneNumbers") @JsonProperty("phoneNumber") String phoneNumber, @JsonProperty("address") String address) {
         this.name = name;
         this.rollNo = rollNo;
         this.sem = sem;
