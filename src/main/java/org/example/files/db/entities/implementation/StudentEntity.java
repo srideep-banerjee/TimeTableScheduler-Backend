@@ -18,6 +18,14 @@ public class StudentEntity implements Entity {
                 .addKey("sec", "integer")
                 .addKey("email", "string")
                 .addKey("attendance", "integer")
+                .addKey(new CreateTableQueryBuilder
+                        .KeyEntry("phone_no", "string")
+                        .notNull(false)
+                )
+                .addKey(new CreateTableQueryBuilder
+                        .KeyEntry("address", "string")
+                        .notNull(false)
+                )
                 .build();
         statement.execute(query);
     }
@@ -44,7 +52,9 @@ public class StudentEntity implements Entity {
                 int sec = results.getInt("sec");
                 String email = results.getString("email");
                 int attendance = results.getInt("attendance");
-                Student student = new Student(name, roll, sem, sec, email, attendance);
+                String phoneNo = results.getString("phone_no");
+                String address = results.getString("address");
+                Student student = new Student(name, roll, sem, sec, email, attendance, phoneNo, address);
                 studentDao.put(roll, student);
             }
         }
@@ -60,6 +70,8 @@ public class StudentEntity implements Entity {
                     .add(student.getSec())
                     .add(student.getEmail())
                     .add(student.getAttendance())
+                    .add(student.getPhoneNumber())
+                    .add(student.getAddress())
                     .executeInsert();
         }
     }
