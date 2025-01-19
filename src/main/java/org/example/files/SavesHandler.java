@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
 
-import static org.example.DefaultConfig.CURRENT_FILE_VERSION;
+import static org.example.files.VersionRectifier.CURRENT_FILE_VERSION;
 
 public class SavesHandler implements AutoCloseable {
     private static SavesHandler instance;
