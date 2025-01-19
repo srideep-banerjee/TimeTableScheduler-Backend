@@ -9,9 +9,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.example.DefaultConfig.CURRENT_FILE_VERSION;
-
 public class VersionRectifier {
+    public static int CURRENT_FILE_VERSION = 3;
+
     private final Connection connection;
 
     public VersionRectifier(Connection connection) {
