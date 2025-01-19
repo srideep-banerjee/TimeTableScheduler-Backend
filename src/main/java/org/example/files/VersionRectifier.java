@@ -2,7 +2,6 @@ package org.example.files;
 
 import org.example.files.db.ConfigHandler;
 import org.example.files.db.CreateTableQueryBuilder;
-import org.example.files.db.entities.implementation.StudentEntity;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -49,16 +48,18 @@ public class VersionRectifier {
             }
         }
 
-        if (version < 2) {
-            try (Statement statement = connection.createStatement()) {
-                new StudentEntity().createIfNotExist(statement);
-            }
-        }
-
         if (version < 3) {
             try (Statement statement = connection.createStatement()) {
-                statement.execute("DROP TABLE current.students");
-                new StudentEntity().createIfNotExist(statement);
+                statement.execute("DROP TABLE IF EXISTS current.students");
+                query = new CreateTableQueryBuilder("current.students")
+                        .addKey("roll_no", "string", true)
+                        .addKey("name", "string")
+                        .addKey("sem", "integer")
+                        .addKey("sec", "integer")
+                        .addKey("email", "string")
+                        .addKey("attendance", "integer")
+                        .build();
+                statement.execute(query);
             }
         }
 
