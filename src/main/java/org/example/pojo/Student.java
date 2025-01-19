@@ -1,21 +1,20 @@
 package org.example.pojo;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.*;
 
 import java.util.Objects;
 
-@JsonPropertyOrder({"name", "rollNo", "sem", "sec", "semSec", "email", "attendance", "phoneNumber", "address"})
+@JsonPropertyOrder({"name", "rollNo", "semester", "section", "email", "attendance", "phoneNumbers", "address"})
 public class Student {
     private final String name;
     private final String rollNo;
+    @JsonAlias("semester")
     private final int sem;
+    @JsonAlias("section")
     private final int sec;
     private final String email;
     private final int attendance;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias("phoneNumbers")
     private final String phoneNumber;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String address;
@@ -53,12 +52,12 @@ public class Student {
         return rollNo;
     }
 
-    @JsonGetter("sem")
+    @JsonGetter("semester")
     public int getSem() {
         return sem;
     }
 
-    @JsonGetter("sec")
+    @JsonGetter("section")
     public int getSec() {
         return sec;
     }
@@ -73,7 +72,8 @@ public class Student {
         return attendance;
     }
 
-    @JsonGetter("phoneNumber")
+    @JsonGetter("phoneNumbers")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getPhoneNumber() {
         return phoneNumber;
     }
