@@ -3,7 +3,6 @@ package org.example.network.api.processors.schedule;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
 import org.example.network.api.response.*;
@@ -26,7 +25,7 @@ public class ScheduleSectionYearApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         int year;
         try {
@@ -54,7 +53,7 @@ public class ScheduleSectionYearApiProcessor extends ApiProcessor {
             }
             case "PUT" -> {
                 try {
-                    List<List<List<String>>> data = objectMapper.readValue(exchange.getRequestBody(), new TypeReference<>() {
+                    List<List<List<String>>> data = objectMapper.readValue(request.body(), new TypeReference<>() {
                     });
 
                     String error = ScheduleSolution.getInstance().setData(year, sec, data);

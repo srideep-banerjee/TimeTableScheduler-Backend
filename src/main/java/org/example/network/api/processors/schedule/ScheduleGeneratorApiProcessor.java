@@ -2,7 +2,6 @@ package org.example.network.api.processors.schedule;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.algorithms.Generator;
 import org.example.files.SavesHandler;
 import org.example.interfaces.OnResultListener;
@@ -27,7 +26,7 @@ public class ScheduleGeneratorApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         if (!request.method().equals("GET")) {
             return new InvalidMethodApiResponse();
         }

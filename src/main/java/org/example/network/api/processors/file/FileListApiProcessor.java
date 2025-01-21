@@ -1,7 +1,6 @@
 package org.example.network.api.processors.file;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.files.SavesHandler;
 import org.example.files.TTSFileException;
 import org.example.network.api.ApiRequest;
@@ -21,7 +20,7 @@ public class FileListApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             String response = objectMapper.writeValueAsString(SavesHandler.getInstance().getSavesList());

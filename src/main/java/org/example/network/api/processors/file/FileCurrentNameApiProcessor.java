@@ -1,6 +1,5 @@
 package org.example.network.api.processors.file;
 
-import com.sun.net.httpserver.HttpExchange;
 import org.example.files.SavesHandler;
 import org.example.files.TTSFileException;
 import org.example.network.api.ApiRequest;
@@ -19,7 +18,7 @@ public class FileCurrentNameApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         try {
             String saveName = SavesHandler.getInstance().getCurrentSaveName();
             return new TextApiResponse(200, saveName);

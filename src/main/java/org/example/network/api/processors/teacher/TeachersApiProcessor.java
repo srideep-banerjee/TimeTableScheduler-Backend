@@ -3,7 +3,6 @@ package org.example.network.api.processors.teacher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.dao.TeacherDao;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
@@ -24,7 +23,7 @@ public class TeachersApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         switch (request.method()) {
             case "GET" -> {
@@ -39,7 +38,7 @@ public class TeachersApiProcessor extends ApiProcessor {
             case "PUT" -> {
                 JsonNode arr;
                 try {
-                    arr = objectMapper.readTree(exchange.getRequestBody());
+                    arr = objectMapper.readTree(request.body());
                 } catch (IOException e) {
                     return new TextApiResponse(400, "Invalid data format");
                 }

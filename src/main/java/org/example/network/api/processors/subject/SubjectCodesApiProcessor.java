@@ -2,7 +2,6 @@ package org.example.network.api.processors.subject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.dao.SubjectDao;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
@@ -23,7 +22,7 @@ public class SubjectCodesApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         if (!request.method().equals("GET")) {
             return new InvalidMethodApiResponse();
         }
