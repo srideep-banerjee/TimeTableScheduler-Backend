@@ -12,6 +12,7 @@ import org.example.network.api.processors.ApiProcessor;
 import org.example.network.api.processors.ApiProcessorList;
 import org.example.network.api.response.*;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ApiHandler implements HttpHandler {
@@ -55,7 +56,12 @@ public class ApiHandler implements HttpHandler {
             return;
         }
 
-        ApiRequest apiRequest = ApiRequest.fromHttpExchange(exchange);
+        ApiRequest apiRequest = null;
+        try {
+            apiRequest = ApiRequest.fromHttpExchange(exchange);
+        } catch (IOException e) {
+            new ServerErrorApiResponse().send(exchange, allowedOrigin);
+        }
         ApiProcessor apiProcessor = getApiProcessor(apiRequest);
         ApiResponse apiResponse;
         try {
