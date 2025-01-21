@@ -2,7 +2,6 @@ package org.example.network.api.processors.subject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.dao.SubjectDao;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
@@ -20,7 +19,7 @@ public class SingleSubjectApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         String path = request.path();
         String code = path.substring(path.lastIndexOf("/") + 1).toUpperCase();
@@ -44,7 +43,7 @@ public class SingleSubjectApiProcessor extends ApiProcessor {
                     return new TextApiResponse(400, "Subject code can't be longer than 20 characters");
                 }
                 try {
-                    SubjectDao.getInstance().put(code, objectMapper.readValue(exchange.getRequestBody(), Subject.class));
+                    SubjectDao.getInstance().put(code, objectMapper.readValue(request.body(), Subject.class));
                     return new TextApiResponse(200, "Request accepted");
                 } catch (IOException e) {
                     return new TextApiResponse(400, "Invalid data format");

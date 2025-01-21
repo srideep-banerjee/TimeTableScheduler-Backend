@@ -2,7 +2,6 @@ package org.example.network.api.processors.schedule;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
 import org.example.network.api.response.*;
@@ -18,7 +17,7 @@ public class ScheduleStructureApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         switch (request.method()) {
             case "GET" -> {
@@ -32,7 +31,7 @@ public class ScheduleStructureApiProcessor extends ApiProcessor {
             }
             case "PUT" -> {
                 try {
-                    objectMapper.readerForUpdating(ScheduleStructure.getInstance()).readValue(exchange.getRequestBody());
+                    objectMapper.readerForUpdating(ScheduleStructure.getInstance()).readValue(request.body());
                     ScheduleSolution.getInstance().updateStructure();
                     return new TextApiResponse(200, "Request accepted");
                 } catch (IOException e) {

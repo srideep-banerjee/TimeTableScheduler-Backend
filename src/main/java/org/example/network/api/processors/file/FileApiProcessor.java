@@ -1,6 +1,5 @@
 package org.example.network.api.processors.file;
 
-import com.sun.net.httpserver.HttpExchange;
 import org.example.files.TTSFileException;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
@@ -28,7 +27,7 @@ public class FileApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         String name = request.queries().get("name");
 
         try {

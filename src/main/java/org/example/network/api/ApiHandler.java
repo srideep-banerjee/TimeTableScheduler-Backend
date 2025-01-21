@@ -68,7 +68,7 @@ public class ApiHandler implements HttpHandler {
             if (apiProcessor == null) {
                 apiResponse = new TextApiResponse(405, "Unsupported request");
             } else {
-                apiResponse = apiProcessor.process(apiRequest, exchange);
+                apiResponse = apiProcessor.process(apiRequest);
             }
         } catch (Exception e) {
             e.printStackTrace();

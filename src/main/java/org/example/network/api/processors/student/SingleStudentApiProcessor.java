@@ -2,7 +2,6 @@ package org.example.network.api.processors.student;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 import org.example.dao.StudentDao;
 import org.example.network.api.ApiRequest;
 import org.example.network.api.processors.ApiProcessor;
@@ -19,7 +18,7 @@ public class SingleStudentApiProcessor extends ApiProcessor {
     }
 
     @Override
-    public ApiResponse process(ApiRequest request, HttpExchange exchange) {
+    public ApiResponse process(ApiRequest request) {
         ObjectMapper objectMapper = new ObjectMapper();
         String path = request.path();
         String roll = path.substring(path.lastIndexOf("/") + 1).toUpperCase();
@@ -41,7 +40,7 @@ public class SingleStudentApiProcessor extends ApiProcessor {
                     return new TextApiResponse(400, "Student roll number can't be empty");
                 }
                 try {
-                    StudentDao.getInstance().put(roll, objectMapper.readValue(exchange.getRequestBody(), Student.class));
+                    StudentDao.getInstance().put(roll, objectMapper.readValue(request.body(), Student.class));
                     return new TextApiResponse(200, "Request accepted");
                 } catch (IOException e) {
                     return new TextApiResponse(400, "Invalid data format");
