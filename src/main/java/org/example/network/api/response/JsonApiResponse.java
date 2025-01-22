@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class JsonApiResponse implements ApiResponse {
     private final int code;
@@ -21,9 +22,10 @@ public class JsonApiResponse implements ApiResponse {
             Headers headers = exchange.getResponseHeaders();
             headers.set("Content-Type", "application/json");
             headers.set("Access-Control-Allow-Origin", allowedOrigin);
-            exchange.sendResponseHeaders(code, jsonString.length());
+            byte[] responseData = jsonString.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(code, responseData.length);
             OutputStream os = exchange.getResponseBody();
-            os.write(jsonString.getBytes());
+            os.write(responseData);
             os.close();
         } catch (IOException e) {
             e.printStackTrace();
