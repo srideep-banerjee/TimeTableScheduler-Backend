@@ -9,13 +9,18 @@ import org.example.pojo.ScheduleSolution;
 
 public class ScheduleYearApiProcessor extends ApiProcessor {
 
+    @Override
+    public String getEndpoint() {
+        return "/io/schedule";
+    }
+
     public ScheduleYearApiProcessor() {
         super.priority = 2;
     }
 
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/schedule") &&
+        return request.path().equals(getEndpoint()) &&
                 request.queries().size() == 1 &&
                 request.queries().containsKey("year");
     }

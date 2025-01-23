@@ -17,8 +17,13 @@ import java.util.regex.Pattern;
 public class TeachersApiProcessor extends ApiProcessor {
 
     @Override
+    public String getEndpoint() {
+        return "/io/teachers";
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        String endpoint = "/io/teachers";
+        String endpoint = getEndpoint();
         return request.path().equals(endpoint);
     }
 

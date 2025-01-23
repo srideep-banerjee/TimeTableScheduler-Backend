@@ -20,8 +20,13 @@ public class FileApiProcessor extends ApiProcessor {
     }
 
     @Override
+    public String getEndpoint() {
+        return "/io/saves/" + endpoint;
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/saves/" + endpoint) &&
+        return request.path().equals(getEndpoint()) &&
                 request.queries().size() == 1 &&
                 request.queries().containsKey("name");
     }

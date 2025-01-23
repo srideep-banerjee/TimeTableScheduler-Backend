@@ -12,10 +12,16 @@ import org.example.network.api.response.TextApiResponse;
 import org.example.pojo.ScheduleSolution;
 
 public class ScheduleTeacherApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/schedule/teacher/";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
         String path = request.path();
-        return path.startsWith("/io/schedule/teacher/") && path.length() > 21;
+        return path.startsWith(getEndpoint()) && path.length() > 21;
     }
 
     @Override

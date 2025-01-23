@@ -12,10 +12,16 @@ import org.example.pojo.Subject;
 import java.io.IOException;
 
 public class SingleSubjectApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/subjects/";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
         String path = request.path();
-        return path.startsWith("/io/subjects/") && (path.length() > "/io/subjects/".length());
+        return path.startsWith(getEndpoint()) && (path.length() > getEndpoint().length());
     }
 
     @Override

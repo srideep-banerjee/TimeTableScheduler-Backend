@@ -17,8 +17,13 @@ public class StudentRollsApiProcessor extends ApiProcessor {
     }
 
     @Override
+    public String getEndpoint() {
+        return "/io/students/rolls";
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/students/rolls");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

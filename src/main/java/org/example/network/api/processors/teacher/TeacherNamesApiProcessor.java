@@ -17,8 +17,13 @@ public class TeacherNamesApiProcessor extends ApiProcessor {
     }
 
     @Override
+    public String getEndpoint() {
+        return "/io/teachers/names";
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        String endpoint = "/io/teachers/names";
+        String endpoint = getEndpoint();
         return request.path().equals(endpoint);
     }
 
