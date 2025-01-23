@@ -19,20 +19,39 @@ public class ApiHandler implements HttpHandler {
     HttpServer server;
     ObjectMapper objectMapper;
     Generator generator;
-    List<ApiProcessor> apiProcessors;
+    StringSearcher<ApiProcessor> apiSearcher;
 
     public ApiHandler(HttpServer server) {
         this.server = server;
         objectMapper = new ObjectMapper();
         generator = new Generator(null);
-        apiProcessors = ApiProcessorList.getAvailableApiProcessors();
+        apiSearcher = new StringSearcher<>();
+        for (ApiProcessor apiProcessor: ApiProcessorList.getAvailableApiProcessors()) {
+            apiSearcher.addEntry(apiProcessor.getEndpoint(), apiProcessor);
+        }
     }
 
     public ApiProcessor getApiProcessor(ApiRequest request) {
-        return apiProcessors
+        String requestPath = request.path();
+        List<ApiProcessor> filteredApiProcessors = apiSearcher.getValues(requestPath);
+
+        while (filteredApiProcessors.isEmpty()) {
+            requestPath = removeLastPathSegment(requestPath);
+            filteredApiProcessors = apiSearcher.getValues(requestPath);
+        }
+
+        return filteredApiProcessors
                 .stream()
                 .filter(processor -> processor.matches(request))
                 .max(Comparator.comparingInt(p -> p.priority)).orElse(null);
+    }
+
+    public String removeLastPathSegment(String path) {
+        int index = path.lastIndexOf('/');
+        if (index == -1) {
+            return "";
+        }
+        return path.substring(0, index);
     }
 
     @Override
