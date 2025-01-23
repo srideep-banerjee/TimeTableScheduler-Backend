@@ -75,11 +75,13 @@ public class ApiHandler implements HttpHandler {
             return;
         }
 
-        ApiRequest apiRequest = null;
+        ApiRequest apiRequest;
         try {
             apiRequest = ApiRequest.fromHttpExchange(exchange);
         } catch (IOException e) {
+            e.printStackTrace();
             new ServerErrorApiResponse().send(exchange, allowedOrigin);
+            return;
         }
         ApiProcessor apiProcessor = getApiProcessor(apiRequest);
         ApiResponse apiResponse;
