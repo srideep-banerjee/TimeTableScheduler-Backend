@@ -13,10 +13,16 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 public class SingleTeacherApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/teachers/";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
         String path = request.path();
-        return path.startsWith("/io/teachers/") && (path.length() > "/io/teachers/".length());
+        return path.startsWith(getEndpoint()) && (path.length() > getEndpoint().length());
     }
 
     @Override

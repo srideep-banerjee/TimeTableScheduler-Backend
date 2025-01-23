@@ -12,9 +12,15 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public class FileCurrentNameApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/saves/currentName";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/saves/currentName");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

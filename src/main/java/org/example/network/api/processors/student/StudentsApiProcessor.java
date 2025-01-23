@@ -13,6 +13,12 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class StudentsApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/students";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
         String path = request.path();

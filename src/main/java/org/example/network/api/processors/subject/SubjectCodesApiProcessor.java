@@ -17,8 +17,13 @@ public class SubjectCodesApiProcessor extends ApiProcessor {
     }
 
     @Override
+    public String getEndpoint() {
+        return "/io/subjects/codes";
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/subjects/codes");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

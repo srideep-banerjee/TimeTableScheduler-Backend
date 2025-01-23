@@ -17,8 +17,13 @@ public class ScheduleGeneratorApiProcessor extends ApiProcessor {
     }
 
     @Override
+    public String getEndpoint() {
+        return "/io/schedule";
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/schedule") &&
+        return request.path().equals(getEndpoint()) &&
                 request.queries().size() == 1 &&
                 request.queries()
                         .getOrDefault("generatenew", "false")

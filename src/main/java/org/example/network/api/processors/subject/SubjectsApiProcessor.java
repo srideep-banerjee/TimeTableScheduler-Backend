@@ -14,9 +14,15 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class SubjectsApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/subjects";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/subjects");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

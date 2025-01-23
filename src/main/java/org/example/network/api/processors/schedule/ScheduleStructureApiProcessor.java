@@ -11,9 +11,15 @@ import org.example.pojo.ScheduleStructure;
 import java.io.IOException;
 
 public class ScheduleStructureApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/schedule/structure";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/schedule/structure");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

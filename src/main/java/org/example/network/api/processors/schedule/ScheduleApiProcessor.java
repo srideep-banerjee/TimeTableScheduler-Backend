@@ -11,9 +11,15 @@ import org.example.network.api.response.ServerErrorApiResponse;
 import org.example.pojo.ScheduleSolution;
 
 public class ScheduleApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/schedule";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/schedule");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

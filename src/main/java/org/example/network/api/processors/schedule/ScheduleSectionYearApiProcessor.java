@@ -17,8 +17,13 @@ public class ScheduleSectionYearApiProcessor extends ApiProcessor {
     }
 
     @Override
+    public String getEndpoint() {
+        return "/io/schedule";
+    }
+
+    @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/schedule") &&
+        return request.path().equals(getEndpoint()) &&
                 request.queries().size() == 2 &&
                 request.queries().containsKey("year") &&
                 request.queries().containsKey("sec");

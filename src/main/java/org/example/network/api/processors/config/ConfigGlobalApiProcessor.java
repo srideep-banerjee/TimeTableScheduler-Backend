@@ -12,10 +12,16 @@ import org.example.network.api.response.TextApiResponse;
 import java.sql.SQLException;
 
 public class ConfigGlobalApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/config/global/";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
         String path = request.path();
-        return request.path().startsWith("/io/config/global/") && path.length() > 18;
+        return request.path().startsWith(getEndpoint()) && path.length() > 18;
     }
 
     @Override

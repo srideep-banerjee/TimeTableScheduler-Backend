@@ -8,9 +8,15 @@ import org.example.network.api.response.ApiResponse;
 import org.example.network.api.response.TextApiResponse;
 
 public class FileIsSavedApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/saves/isSaved";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/saves/isSaved");
+        return request.path().equals(getEndpoint());
     }
 
     @Override

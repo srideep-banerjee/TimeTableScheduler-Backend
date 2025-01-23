@@ -11,10 +11,16 @@ import org.example.pojo.Student;
 import java.io.IOException;
 
 public class SingleStudentApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/students/";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
         String path = request.path();
-        return path.startsWith("/io/students/") && (path.length() > "/io/students/".length());
+        return path.startsWith(getEndpoint()) && (path.length() > getEndpoint().length());
     }
 
     @Override

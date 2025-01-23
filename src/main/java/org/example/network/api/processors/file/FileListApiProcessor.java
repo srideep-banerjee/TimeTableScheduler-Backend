@@ -14,9 +14,15 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public class FileListApiProcessor extends ApiProcessor {
+
+    @Override
+    public String getEndpoint() {
+        return "/io/saves/list";
+    }
+
     @Override
     public boolean matches(ApiRequest request) {
-        return request.path().equals("/io/saves/list");
+        return request.path().equals(getEndpoint());
     }
 
     @Override
