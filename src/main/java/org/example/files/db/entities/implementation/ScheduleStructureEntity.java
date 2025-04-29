@@ -26,10 +26,14 @@ public class ScheduleStructureEntity implements Entity {
 
     @Override
     public void clearMemory() {
-        ScheduleStructure.getInstance().setSemesterCount((byte) 0);
-        ScheduleStructure.getInstance().setPeriodCount((byte) 0);
-        ScheduleStructure.getInstance().setSectionsPerSemester(new byte[0]);
-        ScheduleStructure.getInstance().setBreaksPerSemester(new byte[0][0]);
+        ObjectMapper om = new ObjectMapper();
+        try {
+            String json = om.writeValueAsString(ScheduleStructure.getRevertedClone());
+            om.readerForUpdating(ScheduleStructure.getInstance())
+                    .readValue(json, ScheduleStructure.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
