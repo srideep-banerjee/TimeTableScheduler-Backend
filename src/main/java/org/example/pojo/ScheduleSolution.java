@@ -221,14 +221,11 @@ public class ScheduleSolution {
     }
 
     public void removeAllTeachers() {
-        for (int i = 0; i < data.size(); i++) {
-            var iData = data.get(i);
-            for (int j = 0; j < iData.size(); j++) {
-                var jData = iData.get(j);
-                for (int k = 0; k < jData.size(); k++) {
-                    var kData = jData.get(k);
-                    for (int l = 0; l < kData.size(); l++) {
-                        kData.get(l).set(0, null);
+        for (var sections : data) {
+            for (var days : sections) {
+                for (var periods : days) {
+                    for (var periodData : periods) {
+                        Collections.fill(periodData, null);
                     }
                 }
             }
@@ -236,12 +233,12 @@ public class ScheduleSolution {
     }
 
     public void removeTeacherByName(String name) {
-        for (int i = 0; i < data.size(); i++) {
-            for (int j = 0; j < data.get(i).size(); j++) {
-                for (int k = 0; k < data.get(i).get(j).size(); k++) {
-                    for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
-                        if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name))
-                            data.get(i).get(j).get(k).get(l).set(0, null);
+        for (var sections : data) {
+            for (var days : sections) {
+                for (var periods : days) {
+                    for (var period : periods) {
+                        if (period.get(0) != null && period.get(0).contains(name))
+                            Collections.fill(period, null);
                     }
                 }
             }
@@ -252,16 +249,19 @@ public class ScheduleSolution {
     public String[][][] getTeacherScheduleByName(String name) {
         ScheduleStructure ss = ScheduleStructure.getInstance();
         String[][][] sch = new String[ss.getDayCount()][ss.getPeriodCount()][];
-        for (int i = 0; i < data.size(); i++) {
-            for (int j = 0; j < data.get(i).size(); j++) {
-                for (int k = 0; k < data.get(i).get(j).size(); k++) {
-                    for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
-                        if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name)) {
-                            String subject = data.get(i).get(j).get(k).get(l).get(1);
-                            String roomCode = data.get(i).get(j).get(k).get(l).get(2);
-                            sch[k][l] = new String[]{
+        for (var sections : data) {
+            for (int sec = 0; sec < sections.size(); sec++) {
+                for (int day = 0; day < sections.get(sec).size(); day++) {
+                    for (int period = 0; period < sections.get(sec).get(day).size(); period++) {
+                        if (sections.get(sec).get(day).get(period).get(0) != null &&
+                                sections.get(sec).get(day).get(period).get(0).contains(name)
+                        ) {
+                            String subject = sections
+                                    .get(sec).get(day).get(period).get(1);
+                            String roomCode = sections.get(sec).get(day).get(period).get(2);
+                            sch[day][period] = new String[]{
                                     String.valueOf(SubjectDao.getInstance().get(subject).getSem()),
-                                    String.valueOf(j),
+                                    String.valueOf(sec),
                                     subject,
                                     roomCode
                             };
@@ -274,14 +274,12 @@ public class ScheduleSolution {
     }
 
     public void removeSubjectByCode(String code) {
-        for (int i = 0; i < data.size(); i++) {
-            for (int j = 0; j < data.get(i).size(); j++) {
-                for (int k = 0; k < data.get(i).get(j).size(); k++) {
-                    for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
-                        if (data.get(i).get(j).get(k).get(l).get(1) != null && data.get(i).get(j).get(k).get(l).get(1).equals(code)) {
-                            data.get(i).get(j).get(k).get(l).set(0, null);
-                            data.get(i).get(j).get(k).get(l).set(1, null);
-                            data.get(i).get(j).get(k).get(l).set(2, null);
+        for (var sections : data) {
+            for (var days : sections) {
+                for (var periods : days) {
+                    for (var period : periods) {
+                        if (period.get(1) != null && period.get(1).equals(code)) {
+                            Collections.fill(period, null);
                         }
                     }
                 }
