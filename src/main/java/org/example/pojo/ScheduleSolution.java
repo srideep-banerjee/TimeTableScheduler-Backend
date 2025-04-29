@@ -65,7 +65,7 @@ public class ScheduleSolution {
         empty = isEmpty;
         for (int year = 0; year < ss.getSemesterCount() && year < previousData.size(); year++) {
             for (int sec = 0; sec < ss.getSectionCount(year * 2 + 1) && sec < previousData.get(year).size(); sec++) {
-                for (int day = 0; day < ss.getDayCount(); day++) {
+                for (int day = 0; day < ss.getDayCount() && day < previousData.get(year).get(sec).size(); day++) {
                     for (int period = 0; period < ss.getPeriodCount() && period < previousData.get(year).get(sec).get(day).size(); period++) {
                         boolean in = true;
                         for (byte brk : ss.getBreakLocations(year * 2 + 1)) {
