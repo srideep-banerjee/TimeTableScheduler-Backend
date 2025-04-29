@@ -22,6 +22,8 @@ public class ChromosomeAnalyzer {
     HashMap<Short, TeacherSubjectsData> teacherSubjectAllocationTable;//key = teacher index
     HashMap<String, HashSet<DayPeriod>> practicalLabAllocationTable;
 
+    private final byte dayCount;
+
     public ChromosomeAnalyzer(String[] subjectCodeArray, String[] teacherNameArray, ArrayList<Integer>[] teachersForSubjects) {
         this.subjectCodeArray = subjectCodeArray;
         this.teacherNameArray = teacherNameArray;
@@ -33,6 +35,8 @@ public class ChromosomeAnalyzer {
         teacherTimeConflictTable = new HashMap<>();
         teacherSubjectAllocationTable = new HashMap<>();
         practicalLabAllocationTable = new HashMap<>();
+
+        this.dayCount = ScheduleStructure.getInstance().getDayCount();
 
         this.random = new Random();
     }
@@ -178,7 +182,7 @@ public class ChromosomeAnalyzer {
         //iterate through each day and check if allocation conflict free
         for (byte startPeriod: allocationPeriods) {
             for (String roomCode : availableRoomCodes) {
-                for (byte day = 0; day < 5; day++) {
+                for (byte day = 0; day < dayCount; day++) {
                     boolean valid = true;
                     PeriodCheckerLoop:
                     for (byte period = startPeriod; period < startPeriod + sub.getLectureCount(); period++) {
@@ -199,7 +203,7 @@ public class ChromosomeAnalyzer {
             if (!choices.isEmpty()) break;
         }
 
-        if(choices.isEmpty()) return new PracticalTimeRoom(availableRoomCodes.get(0), new DayPeriod((byte) random.nextInt(5), allocationPeriods.get(0)));
+        if(choices.isEmpty()) return new PracticalTimeRoom(availableRoomCodes.get(0), new DayPeriod((byte) random.nextInt(dayCount), allocationPeriods.get(0)));
         return choices.get(random.nextInt(choices.size()));
     }
 
@@ -214,7 +218,7 @@ public class ChromosomeAnalyzer {
 
         //iterate through each day and check if allocation conflict free
         for (byte startPeriod: allocationPeriods) {
-            for (byte day = 0; day < 5; day++) {
+            for (byte day = 0; day < dayCount; day++) {
                 boolean valid = true;
                 for (byte period = startPeriod; period < startPeriod + sub.getLectureCount(); period++) {
                     DayPeriod dayPeriod = new DayPeriod(day, period);
@@ -230,7 +234,7 @@ public class ChromosomeAnalyzer {
             if (!choices.isEmpty()) break;
         }
 
-        if(choices.isEmpty()) return new DayPeriod((byte) random.nextInt(5), allocationPeriods.get(0));
+        if(choices.isEmpty()) return new DayPeriod((byte) random.nextInt(dayCount), allocationPeriods.get(0));
         return choices.get(random.nextInt(choices.size()));
     }
 
@@ -240,8 +244,7 @@ public class ChromosomeAnalyzer {
 
         ArrayList<DayPeriod> dayPeriods = new ArrayList<>();
         int periodCount = ScheduleStructure.getInstance().getPeriodCount();
-        //Here 5 is the day count
-        int[] values = Util.shuffle(periodCount * 5);
+        int[] values = Util.shuffle(periodCount * dayCount);
 
         //if semesterSection isn't allocated
         for (int i = 0; i < values.length && dayPeriods.size() < sub.getLectureCount(); i++) {
@@ -251,7 +254,7 @@ public class ChromosomeAnalyzer {
             }
         }
         while (dayPeriods.size() < sub.getLectureCount()) {
-            dayPeriods.add(new DayPeriod((short) random.nextInt(periodCount * 5)));
+            dayPeriods.add(new DayPeriod((short) random.nextInt(periodCount * dayCount)));
         }
         return dayPeriods;
     }
@@ -263,8 +266,7 @@ public class ChromosomeAnalyzer {
 
         ArrayList<DayPeriod> dayPeriods = new ArrayList<>();
         int periodCount = ScheduleStructure.getInstance().getPeriodCount();
-        //Here 5 is the day count
-        int[] values = Util.shuffle(periodCount * 5);
+        int[] values = Util.shuffle(periodCount * dayCount);
 
         //if semesterSection isn't allocated
         for (int i = 0; i < values.length && dayPeriods.size() < sub.getLectureCount(); i++) {
@@ -274,7 +276,7 @@ public class ChromosomeAnalyzer {
             }
         }
         while (dayPeriods.size() < sub.getLectureCount()) {
-            dayPeriods.add(new DayPeriod((short) random.nextInt(periodCount * 5)));
+            dayPeriods.add(new DayPeriod((short) random.nextInt(periodCount * dayCount)));
         }
         return dayPeriods;
     }

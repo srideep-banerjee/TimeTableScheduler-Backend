@@ -23,6 +23,8 @@ public class ScheduleStructure {
     private byte[][] breaksPerSemester;//if breakPerSemester[0]=3, semester 1 has break between 3rd and 4th periods
     @JsonProperty("semesterCount")
     private byte semesterCount;
+    @JsonProperty("dayCount")
+    private byte dayCount = 5;
     @JsonIgnore
     private static ScheduleStructure instance;
 
@@ -49,6 +51,7 @@ public class ScheduleStructure {
         scheduleStructure.sectionsPerSemester = new byte[] {0, 0, 1, 0};
         scheduleStructure.periodCount = 9;
         scheduleStructure.breaksPerSemester = new byte[][]{{4, 5}, {5}, {5}, {5}};
+        scheduleStructure.dayCount = 5;
         return scheduleStructure;
     }
 
@@ -80,6 +83,10 @@ public class ScheduleStructure {
         return this.periodCount;
     }
 
+    public byte getDayCount() {
+        return dayCount;
+    }
+
     public byte getSemesterCount() {
         return this.semesterCount;
     }
@@ -103,6 +110,10 @@ public class ScheduleStructure {
 
     public void setPeriodCount(byte periodCount) {
         this.periodCount = periodCount;
+    }
+
+    public void setDayCount(byte dayCount) {
+        this.dayCount = dayCount;
     }
 
     public void setSemesterCount(byte semesterCount) {

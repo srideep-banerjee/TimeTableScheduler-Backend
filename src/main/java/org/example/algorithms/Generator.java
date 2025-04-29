@@ -35,6 +35,7 @@ public class Generator {
     private float maxFitness = 0;
     private int maxFitnessIndex = 0;
     private int generation = 0;
+    private byte dayCount = ScheduleStructure.getInstance().getDayCount();
     private final OnResultListener onResultListener;
     SubjectDao subjectDao = SubjectDao.getInstance();
     TeacherDao teacherDao = TeacherDao.getInstance();
@@ -133,8 +134,8 @@ public class Generator {
         }
         for (Map.Entry<Integer, Short> entry : totalPeriodCounts.entrySet()) {
             int numberOfPeriods = scheduleData.getPeriodCount() - scheduleData.getBreakLocations(entry.getKey()).length;
-            if (entry.getValue() > numberOfPeriods * 5) {
-                onResultListener.onError("Total lecture count in Semester: " + entry.getKey() + " exceeds total period count by " + (entry.getValue() - numberOfPeriods * 5));
+            if (entry.getValue() > numberOfPeriods * dayCount) {
+                onResultListener.onError("Total lecture count in Semester: " + entry.getKey() + " exceeds total period count by " + (entry.getValue() - numberOfPeriods * dayCount));
                 stop();
                 return;
             }
@@ -434,7 +435,7 @@ public class Generator {
                                 val2 = sc2.nextShort();
                                 if (mutate) {
                                     byte period = Util.getPracticalStartingPeriodLocation(subjectCodeArray[i]);
-                                    ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
+                                    ps.println(DayPeriod.getCompact((byte) random.nextInt(dayCount), period));
                                 } else {
                                     ps.println(random.nextBoolean() ? val1 : val2);
                                 }
@@ -478,7 +479,7 @@ public class Generator {
                                     val2 = sc2.nextShort();
                                     if (mutate) {
                                         byte period = getRandomExcluding(scheduleData.getPeriodCount(), scheduleData.getBreakLocations(sub.getSem()), random);
-                                        ps.println(DayPeriod.getCompact((byte) random.nextInt(5), period));
+                                        ps.println(DayPeriod.getCompact((byte) random.nextInt(dayCount), period));
                                     } else {
                                         ps.println(random.nextBoolean() ? val1 : val2);
                                     }

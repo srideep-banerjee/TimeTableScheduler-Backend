@@ -89,23 +89,6 @@ public class LocalServer {
         return "http://localhost:" + port;
     }
 
-    public void servePageNotFoundHtml(HttpExchange exchange) {
-        try {
-            InputStream is = this.getClass().getClassLoader().getResourceAsStream("NotFound.html");
-            byte[] bytes = is.readAllBytes();
-            is.close();
-            Headers headers = exchange.getResponseHeaders();
-            headers.set("Content-Type", "text/html");
-            headers.set("Access-Control-Allow-Origin", "http://localhost:3000 http://localhost:"+port);
-            exchange.sendResponseHeaders(200, bytes.length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(bytes);
-            os.close();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-
     public void stop() {
         if (server != null) server.stop(0);
     }

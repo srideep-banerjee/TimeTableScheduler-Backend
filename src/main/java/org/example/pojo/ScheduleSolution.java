@@ -36,7 +36,7 @@ public class ScheduleSolution {
             List<List<List<List<String>>>> dataSection = new ArrayList<>();
             for (int j = 0; j < ss.getSectionCount(i * 2 + 1); j++) {
                 List<List<List<String>>> dataDay = new ArrayList<>();
-                for (int k = 0; k < 5; k++) {
+                for (int k = 0; k < ss.getDayCount(); k++) {
                     List<List<String>> dataPeriod = new ArrayList<>();
                     for (int l = 0; l < ss.getPeriodCount(); l++) {
                         List<String> dataSlot = new ArrayList<>();
@@ -65,7 +65,7 @@ public class ScheduleSolution {
         empty = isEmpty;
         for (int year = 0; year < ss.getSemesterCount() && year < previousData.size(); year++) {
             for (int sec = 0; sec < ss.getSectionCount(year * 2 + 1) && sec < previousData.get(year).size(); sec++) {
-                for (int day = 0; day < 5; day++) {
+                for (int day = 0; day < ss.getDayCount(); day++) {
                     for (int period = 0; period < ss.getPeriodCount() && period < previousData.get(year).get(sec).get(day).size(); period++) {
                         boolean in = true;
                         for (byte brk : ss.getBreakLocations(year * 2 + 1)) {
@@ -225,7 +225,7 @@ public class ScheduleSolution {
             var iData = data.get(i);
             for (int j = 0; j < iData.size(); j++) {
                 var jData = iData.get(j);
-                for (int k = 0; k < 5; k++) {
+                for (int k = 0; k < jData.size(); k++) {
                     var kData = jData.get(k);
                     for (int l = 0; l < kData.size(); l++) {
                         kData.get(l).set(0, null);
@@ -238,7 +238,7 @@ public class ScheduleSolution {
     public void removeTeacherByName(String name) {
         for (int i = 0; i < data.size(); i++) {
             for (int j = 0; j < data.get(i).size(); j++) {
-                for (int k = 0; k < 5; k++) {
+                for (int k = 0; k < data.get(i).get(j).size(); k++) {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
                         if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name))
                             data.get(i).get(j).get(k).get(l).set(0, null);
@@ -250,11 +250,11 @@ public class ScheduleSolution {
 
     //format of return [day][period]=new String[]{"semester","section","subject code"}
     public String[][][] getTeacherScheduleByName(String name) {
-        byte periodCount = ScheduleStructure.getInstance().getPeriodCount();
-        String[][][] sch = new String[5][periodCount][];
+        ScheduleStructure ss = ScheduleStructure.getInstance();
+        String[][][] sch = new String[ss.getDayCount()][ss.getPeriodCount()][];
         for (int i = 0; i < data.size(); i++) {
             for (int j = 0; j < data.get(i).size(); j++) {
-                for (int k = 0; k < 5; k++) {
+                for (int k = 0; k < data.get(i).get(j).size(); k++) {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
                         if (data.get(i).get(j).get(k).get(l).get(0) != null && data.get(i).get(j).get(k).get(l).get(0).contains(name)) {
                             String subject = data.get(i).get(j).get(k).get(l).get(1);
@@ -276,7 +276,7 @@ public class ScheduleSolution {
     public void removeSubjectByCode(String code) {
         for (int i = 0; i < data.size(); i++) {
             for (int j = 0; j < data.get(i).size(); j++) {
-                for (int k = 0; k < 5; k++) {
+                for (int k = 0; k < data.get(i).get(j).size(); k++) {
                     for (int l = 0; l < data.get(i).get(j).get(k).size(); l++) {
                         if (data.get(i).get(j).get(k).get(l).get(1) != null && data.get(i).get(j).get(k).get(l).get(1).equals(code)) {
                             data.get(i).get(j).get(k).get(l).set(0, null);
@@ -319,11 +319,12 @@ public class ScheduleSolution {
         if (year > yearCount) {
             return String.format("Year: %d is greater than year count: %d", year, yearCount);
         }
-        if (data.size() != 5) {
-            return String.format("Number of days is %d, but should be equal to 5", data.size());
+        int dayCount = ScheduleStructure.getInstance().getDayCount();
+        if (data.size() != dayCount) {
+            return String.format("Number of days is %d, but should be equal to %d", data.size(), dayCount);
         }
         int periodCount = ScheduleStructure.getInstance().getPeriodCount();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < dayCount; i++) {
             if (data.get(i).size() != periodCount) {
                 return String.format("Period count is %d, but should be equal to %d", data.get(i).size(), periodCount);
             }
