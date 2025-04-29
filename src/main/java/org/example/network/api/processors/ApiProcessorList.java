@@ -1,6 +1,7 @@
 package org.example.network.api.processors;
 
 import org.example.network.api.processors.config.ConfigGlobalApiProcessor;
+import org.example.network.api.processors.config.ConfigLocalApiProcessor;
 import org.example.network.api.processors.file.*;
 import org.example.network.api.processors.schedule.*;
 import org.example.network.api.processors.student.SingleStudentApiProcessor;
@@ -52,7 +53,8 @@ public class ApiProcessorList {
                 new FileIsSavedApiProcessor(),
 
                 //Config Apis
-                new ConfigGlobalApiProcessor()
+                new ConfigGlobalApiProcessor(),
+                new ConfigLocalApiProcessor()
         );
     }
 }

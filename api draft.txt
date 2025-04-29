@@ -78,3 +78,9 @@ get config/global/{key name} -done response format: "value of key"
 put config/global/{key name} -done response format: Request accepted
 
 delete config/global/{key name} -done response format: Request accepted
+
+get config/local/{key name} -done response format: "value of key"
+
+put config/local/{key name} -done response format: Request accepted
+
+delete config/local/{key name} -done response format: Request accepted
