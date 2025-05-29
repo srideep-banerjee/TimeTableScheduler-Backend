@@ -21,9 +21,8 @@ public class LocalServer {
         while (true) {
             try {
                 String address = DefaultConfig.REQUIRE_TOKEN ? "localhost" : "0.0.0.0";
-                this.server = HttpServer.create(new InetSocketAddress(address, port), 0);
                 port = (port == -1 ? random.nextInt(5000, 65535) : port);
-                this.server = HttpServer.create(new InetSocketAddress(port), 0);
+                this.server = HttpServer.create(new InetSocketAddress(address, port), 0);
                 break;
             } catch (IOException e) {
                 this.port = random.nextInt(5000, 65535);
